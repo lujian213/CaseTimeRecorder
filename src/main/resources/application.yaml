@@ -1,0 +1,26 @@
+server:
+  port: 9733
+#  forward-headers-strategy: FRAMEWORK
+#  address: 127.0.0.1
+#  ssl:
+#    key-store: "classpath:keystore.p12"
+#    key-store-password: "changeit"
+#    key-store-type: "PKCS12"
+#    key-alias: "my-ssl-cert"
+  error:
+    include-message: always
+
+repo:
+  folder: repo
+
+logging:
+  pattern:
+    console: "%d %-5p [%t] %C{2} (%F:%L) -%m%n"
+    file: "%d %-5p [%t] %C{2} (%F:%L) -%m%n"
+  file:
+    name: log/log.txt
+    path: log
+  level:
+    org:
+      springframework:
+        security: DEBUG

@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'groovy'
+    id 'jacoco'
+//    id 'org.springframework.boot' version "3.4.1"
+}
+
+group = 'io.github.lujian213'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.4.1')
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.0'
+    testImplementation platform('org.junit:junit-bom:5.8.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation platform('org.apache.groovy:groovy-bom:4.0.24')
+    testImplementation 'org.apache.groovy:groovy'
+    testImplementation platform("org.spockframework:spock-bom:2.4-M5-groovy-4.0")
+    testImplementation "org.spockframework:spock-core"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.spockframework:spock-spring'
+}
+
+configurations.configureEach {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+}
+
+test {
+    finalizedBy 'jacocoTestReport'
+    useJUnitPlatform()
+    maxParallelForks = 4
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-parameters'
+}
