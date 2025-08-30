@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'groovy'
     id 'jacoco'
-//    id 'org.springframework.boot' version "3.4.1"
+    id 'org.springframework.boot' version "3.4.1"
 }
 
 group = 'io.github.lujian213'
@@ -37,10 +37,28 @@ configurations.configureEach {
     exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 }
 
+clean {
+    delete 'dist'
+}
+
 test {
     finalizedBy 'jacocoTestReport'
     useJUnitPlatform()
     maxParallelForks = 4
+}
+//sourceSets {
+//    main {
+//        resources {
+//            srcDir 'client/build'
+//        }
+//    }
+//}
+jacocoTestReport {
+    dependsOn test
+    reports {
+        csv.required = true
+        html.required = true
+    }
 }
 
 tasks.withType(Test).configureEach {
@@ -49,4 +67,61 @@ tasks.withType(Test).configureEach {
 
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-parameters'
+}
+
+tasks.register('install') {
+    dependsOn 'build'
+    group 'build'
+    description 'prepare dist folder for deployment'
+    doFirst {
+        println '>>>mkdir dist'
+        mkdir 'dist/lib'
+        mkdir 'dist/bin'
+//        println '>>>mkdir dist/export'
+//        mkdir 'dist/export'
+//        mkdir 'dist/export/static'
+//        mkdir 'dist/nginx'
+//        mkdir 'dist/client'
+    }
+
+    doLast {
+//        println '>>>copy meta files'
+//        copy {
+//            from('.') {
+//                include 'logo.png'
+//                include 'app_meta.properties'
+//            }
+//            into './dist'
+//        }
+
+//        println '>>>copy bin and export'
+//        copy {
+//            from('.') {
+//                include 'export/**'
+//            }
+//            into 'dist'
+//        }
+        println '>>>copy bin'
+        copy {
+            from 'scripts'
+            into 'dist/bin'
+        }
+//        println '>>>copy client'
+//        ant.zip(destfile: 'dist/client/client.zip', basedir: 'client/build/static', includes: '**/*')
+//
+//        println '>>>copy nginx'
+//        copy {
+//            from('.') {
+//                include 'config.nginx'
+//            }
+//            into './dist/nginx'
+//        }
+        println '>>>copy libs'
+        copy {
+            from('build/libs') {
+                exclude 'CaseTime*plain.jar'
+            }
+            into 'dist/lib'
+        }
+    }
 }
