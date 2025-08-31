@@ -73,7 +73,7 @@ class CaseTimeRecordsDaoTest extends Specification {
                 userId == "id2"
             }
         }
-        with(caseTimeRecordsList[1])    {
+        with(caseTimeRecordsList.find{it.caseId() == 2})    {
             caseId() == 2
             timeRecords().size() == 2
             with(timeRecords().get(0)) {
