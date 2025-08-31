@@ -54,7 +54,7 @@ jobs:
       if: always()
       with:
         files: |
-          **/*.xml
+          build/test-results/**/*.xml
           **/*.trx
           build/test-results/test/**/*.json
     - name: Generate JaCoCo Badge
