@@ -30,6 +30,7 @@ public class ResourceService<K, R extends Resource<K>, D extends BaseDao<R>> {
         try {
             List<R> resourceList = resourceDao.load();
             resourceMap.putAll(resourceList.stream().collect(Collectors.toMap(R::getKey, Function.identity())));
+            log.info("loaded {} {}", resourceList.size(), getResourceType());
         } catch (IOException e) {
             log.error("failed to load cases", e);
             throw new TimeRecorderException(e);
