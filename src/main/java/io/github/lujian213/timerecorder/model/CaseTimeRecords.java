@@ -1,10 +1,13 @@
 package io.github.lujian213.timerecorder.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 import java.util.Optional;
 
 public record CaseTimeRecords(int caseId, List<TimeRecord> timeRecords) implements Resource<Integer>{
     @Override
+    @JsonIgnore
     public Integer getKey() {
         return caseId;
     }

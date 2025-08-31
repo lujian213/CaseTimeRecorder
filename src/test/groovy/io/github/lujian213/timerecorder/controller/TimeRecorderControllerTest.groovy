@@ -7,6 +7,7 @@ import io.github.lujian213.timerecorder.model.TimeRecord
 import io.github.lujian213.timerecorder.service.CaseService
 import io.github.lujian213.timerecorder.service.CaseTimeRecordsService
 import io.github.lujian213.timerecorder.service.MiscService
+import io.github.lujian213.timerecorder.utils.CaseTimeRecorderUtils
 import io.github.lujian213.timerecorder.utils.Constants
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
@@ -156,8 +157,8 @@ class TimeRecorderControllerTest extends Specification {
         then:
         mockMvc.perform(get("/exportrecords/{caseId}", 1))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.valueOf("text/csv")))
-                .andExpect(content().string(fileContent))
+                .andExpect(content().contentType(MediaType.valueOf("text/csv;charset=UTF-8")))
+                .andExpect(content().bytes(CaseTimeRecorderUtils.toBytesWithBOM(fileContent)))
                 .andExpect(header().string("Content-Disposition", 'attachment; filename=case1_time_records.csv;'))
     }
 }
