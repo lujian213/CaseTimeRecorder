@@ -98,6 +98,7 @@ public class TimeRecorderController extends BaseController {
             var content = caseTimeRecordersService.exportTimeRecords(caseId);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Access-Control-Expose-Headers", "Content-Disposition")
                     .header("Content-Disposition", "attachment; filename=%s_time_records.csv;".formatted(caseInfo.getCaseName()))
                     .body(CaseTimeRecorderUtils.toBytesWithBOM(content));
         });
