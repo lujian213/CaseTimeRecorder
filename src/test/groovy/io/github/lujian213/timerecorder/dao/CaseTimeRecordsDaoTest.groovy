@@ -58,7 +58,7 @@ class CaseTimeRecordsDaoTest extends Specification {
 
         then:
         caseTimeRecordsList.size() == 2
-        with(caseTimeRecordsList[0])    {
+        with(caseTimeRecordsList.find{it.caseId() == 1})    {
             caseId() == 1
             timeRecords().size() == 2
             with(timeRecords().get(0)) {
