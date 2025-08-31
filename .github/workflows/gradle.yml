@@ -1,0 +1,221 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  node-and-java-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      pages: write
+      id-token: write
+
+    steps:
+#    - uses: actions/checkout@v4
+#    - name: Setup Node.js
+#      uses: actions/setup-node@v4
+#      with:
+#        node-version: '20.x'
+#    - name: build client
+#      run: |
+#        cd client
+#        npm i -legacy-peer-deps
+#        npm run build
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
+    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle Wrapper
+      run: ./gradlew install --no-daemon
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action/linux@v2
+      if: always()
+      with:
+        files: |
+          **/*.xml
+          **/*.trx
+          build/test-results/test/**/*.json
+    - name: Generate JaCoCo Badge
+      uses: cicirello/jacoco-badge-generator@v2
+      with:
+        jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
+
+    - name: Temporarily save output jar
+      uses: actions/upload-artifact@v4
+      with:
+        name: casetimerecorder-jar
+        path: dist/lib/casetimerecorder-1.0.0.jar
+        compression-level: 9
+#    - name: Temporarily save client zip
+#      uses: actions/upload-artifact@v4
+#      with:
+#       name: client-zip
+#       path: dist/client/client.zip
+#       compression-level: 9
+#    - name: Temporarily save nginx config
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: nginx-config
+#        path: dist/nginx/config.nginx
+#        compression-level: 9
+#
+#    - name: Setup Pages
+#      uses: actions/configure-pages@v5
+#    - name: Build with Jekyll
+#      uses: actions/jekyll-build-pages@v1
+#      with:
+#        source: ./client/build/static
+#        destination: ./_site
+#    - name: Upload artifact
+#      uses: actions/upload-pages-artifact@v3
+
+  # Deployment job
+#  deploy-pages:
+#    if: github.ref == 'refs/heads/main'
+#    permissions:
+#      contents: read
+#      checks: write
+#      pull-requests: write
+#      pages: write
+#      id-token: write
+##    environment:
+##      name: github-pages
+##      url: ${{ steps.deployment.outputs.page_url }}
+#    runs-on: ubuntu-latest
+#    needs: node-and-java-build
+#    steps:
+#    - run: |
+#        echo "Current ref: $GITHUB_REF"
+#    - name: Deploy to GitHub Pages
+#      id: deployment
+#      uses: actions/deploy-pages@v4
+
+  package-and-deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [node-and-java-build]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve saved casetimerecorder jar
+        uses: actions/download-artifact@v4
+        with:
+          name: casetimerecorder-jar
+          path: dist/lib
+#      - name: Retrieve saved client zip
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: client-zip
+#          path: dist/client
+#      - name: Retrieve saved nginx config
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: nginx-config
+#          path: dist/nginx
+      - run: |
+          ls -l dist/lib
+#          ls -l dist/client
+#          ls -l dist/nginx
+      - name: Login to dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER_NAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push to dockerhub
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}
+          push: true
+          tags: lujian213/casetimerecorder:latest
+
+      - name: Login to github container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push to github container registry
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/casetimerecorder:latest
+
+#      - name: copy client.zip via ssh password
+#        uses: appleboy/scp-action@v0.1.7
+#        with:
+#          host: ${{ secrets.DEPLOY_HOSTNAME }}
+#          username: ${{ secrets.DEPLOY_USERNAME }}
+#          password: ${{ secrets.DEPLOY_PASSWORD }}
+#          source: "${{ github.workspace }}/dist/client/client.zip"
+#          overwrite: true
+#          strip_components: 4
+#          target: /eggfund_deploy
+#      - name: copy config.nginx via ssh password
+#        uses: appleboy/scp-action@v0.1.7
+#        with:
+#          host: ${{ secrets.DEPLOY_HOSTNAME }}
+#          username: ${{ secrets.DEPLOY_USERNAME }}
+#          password: ${{ secrets.DEPLOY_PASSWORD }}
+#          source: "${{ github.workspace }}/dist/nginx/config.nginx"
+#          overwrite: true
+#          strip_components: 4
+#          target: /eggfund_deploy
+      - name: copy casetimerecorder jar via ssh password
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOSTNAME }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          source: "${{ github.workspace }}/dist/lib/casetimerecorder-1.0.0.jar"
+          overwrite: true
+          strip_components: 4
+          target: /casetimerecorder_deploy
+
+  dependency-submission:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21
+        distribution: 'temurin'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
+    # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
