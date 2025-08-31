@@ -77,6 +77,7 @@ tasks.register('install') {
         println '>>>mkdir dist'
         mkdir 'dist/lib'
         mkdir 'dist/bin'
+        mkdir 'dist/repo'
 //        println '>>>mkdir dist/export'
 //        mkdir 'dist/export'
 //        mkdir 'dist/export/static'
@@ -106,8 +107,8 @@ tasks.register('install') {
             from 'scripts'
             into 'dist/bin'
         }
-//        println '>>>copy client'
-//        ant.zip(destfile: 'dist/client/client.zip', basedir: 'client/build/static', includes: '**/*')
+        println '>>>copy repo.zip'
+        ant.zip(destfile: 'dist/repo/repo.zip', basedir: 'repo', includes: '*.json')
 //
 //        println '>>>copy nginx'
 //        copy {
@@ -122,6 +123,13 @@ tasks.register('install') {
                 exclude 'CaseTime*plain.jar'
             }
             into 'dist/lib'
+        }
+        println '>>>copy repo'
+        copy {
+            from('repo') {
+                include '*.json'
+            }
+            into 'dist/repo'
         }
     }
 }

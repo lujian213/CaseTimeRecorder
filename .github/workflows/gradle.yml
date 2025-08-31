@@ -68,6 +68,12 @@ jobs:
         name: casetimerecorder-jar
         path: dist/lib/casetimerecorder-1.0.0.jar
         compression-level: 9
+    - name: Temporarily save repo.zip file
+      uses: actions/upload-artifact@v4
+      with:
+        name: repo-zip
+        path: dist/repo/repo.zip
+        compression-level: 9
 #    - name: Temporarily save client zip
 #      uses: actions/upload-artifact@v4
 #      with:
@@ -127,6 +133,11 @@ jobs:
         with:
           name: casetimerecorder-jar
           path: dist/lib
+      - name: Retrieve saved repo.zip
+        uses: actions/download-artifact@v4
+        with:
+          name: repo-zip
+          path: dist/repo
 #      - name: Retrieve saved client zip
 #        uses: actions/download-artifact@v4
 #        with:
@@ -139,6 +150,7 @@ jobs:
 #          path: dist/nginx
       - run: |
           ls -l dist/lib
+          ls -l dist/repo
 #          ls -l dist/client
 #          ls -l dist/nginx
       - name: Login to dockerhub
@@ -168,6 +180,16 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/casetimerecorder:latest
 
+      - name: copy repo.zip via ssh password
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOSTNAME }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          source: "${{ github.workspace }}/dist/repo/repo.zip"
+          overwrite: true
+          strip_components: 4
+          target: /casetimerecorder_deploy
 #      - name: copy client.zip via ssh password
 #        uses: appleboy/scp-action@v0.1.7
 #        with:
