@@ -50,6 +50,15 @@ class CaseServiceTest extends Specification {
 
     def "getCases"() {
         when:
+        def cases = caseService.getAllResources()
+
+        then:
+        cases.size() == 2
+        cases.find{it.caseId == 1}.description == "description1"
+    }
+
+    def "updateResource"() {
+        when:
         caseService.updateResource(new Case(1).with(true) {
             caseName = "case1"
             description = "description1-updated"
@@ -59,6 +68,7 @@ class CaseServiceTest extends Specification {
 
         then:
         cases.size() == 1
+        cases.find{it.caseId == 2}.description == "description2"
         caseService.resourceMap[1].description == "description1-updated"
         caseService.resourceMap[1].status == DELETED
     }

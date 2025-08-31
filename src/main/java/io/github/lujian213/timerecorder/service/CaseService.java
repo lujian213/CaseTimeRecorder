@@ -42,7 +42,7 @@ public class CaseService extends ResourceService<Integer, Case, CaseDao> {
     public List<Case> getAllResources() {
         synchronized (resourceMap) {
             List<Case> ret = super.getAllResources();
-            ret.removeIf(caseInfo->caseInfo.getStatus()!=DELETED);
+            ret.removeIf(caseInfo->caseInfo.getStatus()==DELETED);
             return ret;
         }
     }
