@@ -156,7 +156,7 @@ class TimeRecorderControllerTest extends Specification {
         then:
         mockMvc.perform(get("/exportrecords/{caseId}", 1))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .andExpect(content().contentType(MediaType.valueOf("text/csv")))
                 .andExpect(content().string(fileContent))
                 .andExpect(header().string("Content-Disposition", 'attachment; filename=case1_time_records.csv;'))
     }

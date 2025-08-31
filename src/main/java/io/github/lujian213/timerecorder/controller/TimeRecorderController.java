@@ -89,13 +89,13 @@ public class TimeRecorderController extends BaseController {
     }
 
     @Operation(summary = "export time records")
-    @GetMapping(value = "/exportrecords/{caseId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(value = "/exportrecords/{caseId}", produces = "text/csv")
     public ResponseEntity<String> exportInvests(@PathVariable int caseId) {
         return runWithExceptionHandling("export case (%s) records error: ".formatted(caseId), () -> {
             var caseInfo = caseService.checkResource(caseId);
             var content = caseTimeRecordersService.exportTimeRecords(caseId);
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(MediaType.valueOf("text/csv"))
                     .header("Content-Disposition", "attachment; filename=%s_time_records.csv;".formatted(caseInfo.getCaseName()))
                     .body(content);
         });
