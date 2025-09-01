@@ -7,6 +7,7 @@ import io.github.lujian213.timerecorder.service.CaseService;
 import io.github.lujian213.timerecorder.service.CaseTimeRecordsService;
 import io.github.lujian213.timerecorder.service.MiscService;
 import io.github.lujian213.timerecorder.utils.CaseTimeRecorderUtils;
+import io.github.lujian213.timerecorder.utils.Constants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -96,10 +96,12 @@ public class TimeRecorderController extends BaseController {
         return runWithExceptionHandling("export case (%s) records error: ".formatted(caseId), () -> {
             var caseInfo = caseService.checkResource(caseId);
             var content = caseTimeRecordersService.exportTimeRecords(caseId);
+            String filename = CaseTimeRecorderUtils.fileNameInResponse(Constants.EXPORT_FILE_NAME_FORMAT.formatted(caseInfo.getCaseName()));
+            log.info("export case ({}) records, filename: {}", caseId, filename);
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                     .header("Access-Control-Expose-Headers", "Content-Disposition")
-                    .header("Content-Disposition", "attachment; filename=%s_time_records.csv;".formatted(caseInfo.getCaseName()))
+                    .header("Content-Disposition", "attachment; filename*=" + filename)
                     .body(CaseTimeRecorderUtils.toBytesWithBOM(content));
         });
     }

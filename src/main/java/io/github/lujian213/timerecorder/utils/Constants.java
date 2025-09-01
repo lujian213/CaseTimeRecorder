@@ -14,7 +14,7 @@ public final class Constants {
 
     public static final String TIME_RECORDER_FILE_NAME_PREFIX = "time-recorder-";
     public static final Pattern TIME_RECORDER_FILE_NAME_PATTERN = Pattern.compile(TIME_RECORDER_FILE_NAME_PREFIX + "(?<caseId>\\d+)\\.json");
-
+    public static final String EXPORT_FILE_NAME_FORMAT = "%s_time_records.csv";
     public static final String USERS_FILE_NAME = "users.json";
     public static final String CASES_FILE_NAME = "cases.json";
     public static final String BINDINGS_FILE_NAME = "bindings.json";

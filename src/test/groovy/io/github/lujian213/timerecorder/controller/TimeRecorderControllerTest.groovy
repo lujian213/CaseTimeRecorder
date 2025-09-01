@@ -159,6 +159,6 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")))
                 .andExpect(content().bytes(CaseTimeRecorderUtils.toBytesWithBOM(fileContent)))
-                .andExpect(header().string("Content-Disposition", 'attachment; filename=case1_time_records.csv;'))
+                .andExpect(header().string("Content-Disposition", "attachment; filename*=${CaseTimeRecorderUtils.fileNameInResponse("case1_time_records.csv")}") )
     }
 }

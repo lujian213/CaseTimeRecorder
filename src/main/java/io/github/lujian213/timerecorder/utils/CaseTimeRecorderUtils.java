@@ -1,5 +1,6 @@
 package io.github.lujian213.timerecorder.utils;
 
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class CaseTimeRecorderUtils {
@@ -13,5 +14,10 @@ public class CaseTimeRecorderUtils {
         System.arraycopy(bom, 0, result, 0, bom.length);
         System.arraycopy(contentBytes, 0, result, bom.length, contentBytes.length);
         return result;
+    }
+
+    public static String fileNameInResponse(String fn) {
+        String filename = URLEncoder.encode(fn, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        return "UTF-8''" + filename;
     }
 }
