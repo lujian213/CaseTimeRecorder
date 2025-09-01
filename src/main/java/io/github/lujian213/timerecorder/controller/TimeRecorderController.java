@@ -97,7 +97,7 @@ public class TimeRecorderController extends BaseController {
             var caseInfo = caseService.checkResource(caseId);
             var content = caseTimeRecordersService.exportTimeRecords(caseId);
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                     .header("Access-Control-Expose-Headers", "Content-Disposition")
                     .header("Content-Disposition", "attachment; filename=%s_time_records.csv;".formatted(caseInfo.getCaseName()))
                     .body(CaseTimeRecorderUtils.toBytesWithBOM(content));
