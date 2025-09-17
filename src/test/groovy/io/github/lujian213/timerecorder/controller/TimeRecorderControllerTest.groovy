@@ -1,5 +1,6 @@
 package io.github.lujian213.timerecorder.controller
 
+import io.github.lujian213.timerecorder.config.SecurityConfig
 import io.github.lujian213.timerecorder.model.Case
 import io.github.lujian213.timerecorder.model.CaseTimeRecords
 import io.github.lujian213.timerecorder.model.Category
@@ -13,6 +14,8 @@ import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import spock.lang.Specification
 
@@ -21,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @WebMvcTest(TimeRecorderController)
+@ContextConfiguration(classes = [SecurityConfig.class, TimeRecorderController.class])
 class TimeRecorderControllerTest extends Specification {
     @SpringBean
     CaseService caseService = Mock(CaseService)
@@ -32,6 +36,7 @@ class TimeRecorderControllerTest extends Specification {
     @Autowired
     MockMvc mockMvc
 
+    @WithMockUser(roles = "ADMIN")
     def "getCategories"() {
         when:
         def categories = [new Category("cat1"), new Category("cat2")] as List<Category>
@@ -43,6 +48,7 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(categories)))
     }
 
+    @WithMockUser(username = "user1", roles = "USER")
     def "startTimeRecord"() {
         when:
         def record = new TimeRecord(1).with(true) {
@@ -54,13 +60,14 @@ class TimeRecorderControllerTest extends Specification {
         1 * caseTimeRecordsService.startRecord(1, "user1", "cat1", "comm1") >> record
         then:
         mockMvc.perform(post("/record/start").param("caseId", "1")
-                .param("userId", "user1").param("category", "cat1")
+                .param("category", "cat1")
                 .param("comments", "comm1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(record)))
     }
 
+    @WithMockUser(roles = "USER")
     def "stopTimeRecord"() {
         when:
         def record = new TimeRecord(1).with(true) {
@@ -79,6 +86,7 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(record)))
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "newTimeRecord"() {
         when:
         def record = new TimeRecord(1).with(true) {
@@ -96,6 +104,7 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(record)))
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "updateTimeRecord"() {
         when:
         def record = new TimeRecord(1).with(true) {
@@ -113,6 +122,7 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(record)))
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "deleteTimeRecord"() {
         when:
         1 * caseTimeRecordsService.deleteTimeRecord(2, 1) >> {}
@@ -122,6 +132,7 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(status().isOk())
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "getAllTimeRecords"() {
         when:
         def records = new CaseTimeRecords(1, [
@@ -146,6 +157,7 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(records)))
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "exportInvests"() {
         when:
         def fileContent = "a,b,c\n1,2,3"

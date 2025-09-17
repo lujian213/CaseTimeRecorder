@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,14 +49,16 @@ public class TimeRecorderController extends BaseController {
         return runWithExceptionHandling("get all categories error", () -> miscService.getAllResources());
     }
 
+    @PreAuthorize("hasRole('USER')")
     @Operation(summary = "start a new case time recorder")
     @PostMapping(value = "/record/start", produces = MediaType.APPLICATION_JSON_VALUE)
-    public TimeRecord startTimeRecord(@RequestParam int caseId, @RequestParam String userId,
+    public TimeRecord startTimeRecord(Authentication authentication, @RequestParam int caseId,
                                       @RequestParam String category, @RequestParam String comments) {
         return runWithExceptionHandling("start time record error",
-                () -> caseTimeRecordersService.startRecord(caseId, userId, category, comments));
+                () -> caseTimeRecordersService.startRecord(caseId, authentication.getName(), category, comments));
     }
 
+    @PreAuthorize("hasRole('USER')")
     @Operation(summary = "stop a time recorder")
     @PostMapping(value = "/record/stop", produces = MediaType.APPLICATION_JSON_VALUE)
     public TimeRecord stopTimeRecord(@RequestParam int caseId, @RequestParam int recordId) {
@@ -62,6 +66,7 @@ public class TimeRecorderController extends BaseController {
                 () -> caseTimeRecordersService.stopRecord(caseId, recordId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "add a new time recorder")
     @PutMapping(value = "/record", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TimeRecord newTimeRecord(@RequestBody TimeRecord timeRecord) {
@@ -69,6 +74,7 @@ public class TimeRecorderController extends BaseController {
                 () -> caseTimeRecordersService.addTimeRecord(timeRecord));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "update a time recorder")
     @PostMapping(value = "/record", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TimeRecord updateTimeRecord(@RequestBody TimeRecord timeRecord) {
@@ -76,6 +82,7 @@ public class TimeRecorderController extends BaseController {
                 () -> caseTimeRecordersService.updateTimeRecord(timeRecord));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "delete a time recorder")
     @DeleteMapping(value = "/record")
     public void deleteTimeRecord(@RequestParam int caseId, @RequestParam int recordId) {
@@ -83,6 +90,7 @@ public class TimeRecorderController extends BaseController {
                 () -> caseTimeRecordersService.deleteTimeRecord(caseId, recordId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "get all time records")
     @GetMapping(value = "/records/{caseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public CaseTimeRecords getAllTimeRecords(@PathVariable int caseId) {
@@ -90,6 +98,7 @@ public class TimeRecorderController extends BaseController {
                 () -> caseTimeRecordersService.checkResource(caseId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "export time records")
     @GetMapping(value = "/exportrecords/{caseId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> exportInvests(@PathVariable int caseId) {

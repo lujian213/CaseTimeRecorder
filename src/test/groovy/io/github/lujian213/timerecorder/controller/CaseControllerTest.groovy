@@ -1,5 +1,6 @@
 package io.github.lujian213.timerecorder.controller
 
+import io.github.lujian213.timerecorder.config.SecurityConfig
 import io.github.lujian213.timerecorder.model.Case
 import io.github.lujian213.timerecorder.service.CaseService
 import io.github.lujian213.timerecorder.utils.Constants
@@ -7,6 +8,8 @@ import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import spock.lang.Specification
 
@@ -16,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(CaseController)
+@WithMockUser(roles = "ADMIN")
+@ContextConfiguration(classes = [SecurityConfig.class, CaseController.class])
 class CaseControllerTest extends Specification {
 
     @SpringBean
