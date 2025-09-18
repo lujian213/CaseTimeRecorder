@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
+const url = require('url');
 
 let mainWindow;
 
@@ -23,14 +24,19 @@ function createWindow() {
   });
 
   // 加载React开发服务器
-  mainWindow.loadURL('http://localhost:3000');
+  const startUrl = process.env.ELECTRON_START_URL || url.format({
+    pathname: path.join(__dirname, '/../build/index.html'),
+    protocol: 'file:',
+    slashes: true
+  });
+  mainWindow.loadURL(startUrl);
 
   // 初始位置：右上角
   const { screen } = require('electron');
   const { width } = screen.getPrimaryDisplay().workAreaSize;
   mainWindow.setPosition(width - 360, 20);
 
-    ipcMain.on('resize-window', (event, height) => {
+  ipcMain.on('resize-window', (event, height) => {
     // 验证高度是否有效
     if (typeof height === 'number' && height > 100 && height < 2000) {
       // 只改变高度，保持宽度不变
@@ -84,10 +90,14 @@ ipcMain.on('open-new-window', (event, args) => {
   });
 
   // 构建带路由的URL
-  const startUrl = 'http://localhost:3000'
+  const startUrl = process.env.ELECTRON_START_URL || url.format({
+    pathname: path.join(__dirname, '/../build/index.html'),
+    protocol: 'file:',
+    slashes: true
+  });
 
   // 加载应用并跳转到指定路由
-  const urlWithRoute = `${startUrl}#${args.route}`;
+  const urlWithRoute = `${startUrl}/#/${args.route}`;
   newWindow.loadURL(urlWithRoute);
 
   newWindow.on('closed', () => {

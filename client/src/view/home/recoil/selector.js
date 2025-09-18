@@ -5,7 +5,7 @@ export const categoriesValue = selector({
     key: 'categories', // unique ID (with respect to other atoms/selectors)
     get: async ({ get }) => {
         try {
-            const resposne = await axios.get('http://103.119.16.229:9733/categories');
+            const resposne = await axios.get('https://law-ai.top/api/categories');
             return resposne.data
         } catch (e) {
             return []
