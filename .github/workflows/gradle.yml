@@ -138,6 +138,7 @@ jobs:
         run: |
           cd client
           set CI=
+          set author=Garay
           npm run build
 
 
