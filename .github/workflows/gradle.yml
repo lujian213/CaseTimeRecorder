@@ -130,10 +130,14 @@ jobs:
           node-version: '22' # Specify your desired Node.js version
 
       - name: Install dependencies
-        run: npm install
+        run: | 
+          cd client
+          npm install
 
       - name: Build project
-        run: npm run build # Assumes you have a 'build' script in your package.json
+        run: |
+          cd client
+          npm run build
 
 
   package-and-deploy:
