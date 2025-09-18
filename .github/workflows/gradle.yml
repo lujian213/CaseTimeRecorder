@@ -175,20 +175,10 @@ jobs:
           host: ${{ secrets.DEPLOY_HOSTNAME }}
           username: ${{ secrets.DEPLOY_USERNAME }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
-          source: "${{ github.workspace }}/dist/client/time_recorder.exe"
+          source: "${{ github.workspace }}/dist/client/*.exe"
           overwrite: true
           strip_components: 4
           target: /casetimerecorder_deploy
-#      - name: copy config.nginx via ssh password
-#        uses: appleboy/scp-action@v0.1.7
-#        with:
-#          host: ${{ secrets.DEPLOY_HOSTNAME }}
-#          username: ${{ secrets.DEPLOY_USERNAME }}
-#          password: ${{ secrets.DEPLOY_PASSWORD }}
-#          source: "${{ github.workspace }}/dist/nginx/config.nginx"
-#          overwrite: true
-#          strip_components: 4
-#          target: /eggfund_deploy
       - name: copy casetimerecorder jar via ssh password
         uses: appleboy/scp-action@v0.1.7
         with:
