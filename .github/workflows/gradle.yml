@@ -150,6 +150,7 @@ jobs:
     needs: build-client-windows # This job depends on the build job
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       pages: write
       id-token: write
     steps:
