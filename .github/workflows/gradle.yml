@@ -74,49 +74,6 @@ jobs:
         name: repo-zip
         path: dist/repo/repo.zip
         compression-level: 9
-#    - name: Temporarily save client zip
-#      uses: actions/upload-artifact@v4
-#      with:
-#       name: client-zip
-#       path: dist/client/client.zip
-#       compression-level: 9
-#    - name: Temporarily save nginx config
-#      uses: actions/upload-artifact@v4
-#      with:
-#        name: nginx-config
-#        path: dist/nginx/config.nginx
-#        compression-level: 9
-#
-#    - name: Setup Pages
-#      uses: actions/configure-pages@v5
-#    - name: Build with Jekyll
-#      uses: actions/jekyll-build-pages@v1
-#      with:
-#        source: ./client/build/static
-#        destination: ./_site
-#    - name: Upload artifact
-#      uses: actions/upload-pages-artifact@v3
-
-  # Deployment job
-#  deploy-pages:
-#    if: github.ref == 'refs/heads/main'
-#    permissions:
-#      contents: read
-#      checks: write
-#      pull-requests: write
-#      pages: write
-#      id-token: write
-##    environment:
-##      name: github-pages
-##      url: ${{ steps.deployment.outputs.page_url }}
-#    runs-on: ubuntu-latest
-#    needs: node-and-java-build
-#    steps:
-#    - run: |
-#        echo "Current ref: $GITHUB_REF"
-#    - name: Deploy to GitHub Pages
-#      id: deployment
-#      uses: actions/deploy-pages@v4
 
   build-client-windows:
     runs-on: windows-latest # Specifies a Windows virtual machine runner
@@ -146,32 +103,10 @@ jobs:
          name: time_recorder.exe
          path: client/dist/win-unpacked/案例管理系统.exe
 
-  deploy-client-exe:
-    needs: build-client-windows # This job depends on the build job
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: time_recorder.exe
-          path: ./release-files # Download artifact to this folder
-
-      - name: Deploy to GitHub Pages 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: ./release-files # The folder containing your executable and dependencies
-
   package-and-deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [node-and-java-build]
+    needs: [node-and-java-build, build-client-windows]
     permissions:
       contents: read
       packages: write
@@ -188,21 +123,15 @@ jobs:
         with:
           name: repo-zip
           path: dist/repo
-#      - name: Retrieve saved client zip
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: client-zip
-#          path: dist/client
-#      - name: Retrieve saved nginx config
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: nginx-config
-#          path: dist/nginx
+      - name: Retrieve saved client zip
+        uses: actions/download-artifact@v4
+        with:
+          name: time_recorder.exe
+          path: dist/client
       - run: |
           ls -l dist/lib
           ls -l dist/repo
-#          ls -l dist/client
-#          ls -l dist/nginx
+          ls -l dist/client
       - name: Login to dockerhub
         uses: docker/login-action@v3
         with:
@@ -240,16 +169,16 @@ jobs:
           overwrite: true
           strip_components: 4
           target: /casetimerecorder_deploy
-#      - name: copy client.zip via ssh password
-#        uses: appleboy/scp-action@v0.1.7
-#        with:
-#          host: ${{ secrets.DEPLOY_HOSTNAME }}
-#          username: ${{ secrets.DEPLOY_USERNAME }}
-#          password: ${{ secrets.DEPLOY_PASSWORD }}
-#          source: "${{ github.workspace }}/dist/client/client.zip"
-#          overwrite: true
-#          strip_components: 4
-#          target: /eggfund_deploy
+      - name: copy time_recorder.exe via ssh password
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOSTNAME }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          source: "${{ github.workspace }}/dist/client/time_recorder.exe"
+          overwrite: true
+          strip_components: 4
+          target: /casetimerecorder_deploy
 #      - name: copy config.nginx via ssh password
 #        uses: appleboy/scp-action@v0.1.7
 #        with:
