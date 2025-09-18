@@ -140,7 +140,32 @@ jobs:
           $env:CI=""
           $env:author="Gary"
           npm run build
+      - name: Temporarily save client exe
+        uses: actions/upload-artifact@v4
+        with:
+         name: time_recorder.exe
+         path: client/dist/win-unpacked/案例管理系统.exe
 
+  deploy-client-exe:
+    needs: build-client-windows # This job depends on the build job
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: time_recorder.exe
+          path: ./release-files # Download artifact to this folder
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: ./release-files # The folder containing your executable and dependencies
 
   package-and-deploy:
     if: github.ref == 'refs/heads/main'
