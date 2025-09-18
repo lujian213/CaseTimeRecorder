@@ -27,7 +27,7 @@
   "build": {
     "appId": "com.yourcompany.electroncrud",
     "productName": "案例管理系统",
-    "copyright": "Copyright © 2023 ${author}",
+    "copyright": "Copyright © 2025",
     "directories": {
       "output": "dist"
     },
