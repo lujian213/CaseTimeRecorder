@@ -137,6 +137,7 @@ jobs:
       - name: Build project
         run: |
           cd client
+          set CI=
           npm run build
 
 
