@@ -5,8 +5,10 @@ import io.github.lujian213.timerecorder.dao.UserCaseBindingDao
 import io.github.lujian213.timerecorder.dao.UserInfoDao
 import io.github.lujian213.timerecorder.exception.TimeRecorderException
 import io.github.lujian213.timerecorder.model.Case
+import io.github.lujian213.timerecorder.model.Role
 import io.github.lujian213.timerecorder.model.UserCaseBinding
 import io.github.lujian213.timerecorder.model.UserInfo
+import org.springframework.security.crypto.password.PasswordEncoder
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -27,24 +29,20 @@ class UserServiceTest extends Specification {
         def users = [
                 new UserInfo("id1").with(true) {
                     userName = "user1"
-                    role = "admin"
-                },
-                new UserInfo("id2").with(true) {
-                    userName = "user2"
-                    role = "user"
+                    role = Role.USER
                 },
                 new UserInfo("id100").with(true) {
                     userName = "user100"
-                    role = "user"
+                    role = Role.USER
                 }
         ] as List<UserInfo>
         userInfoDao.save(users)
 
         userCaseBindingDao = new UserCaseBindingDao(tempDir)
         def bindings = [
-                new UserCaseBinding("id1", [1, 2, 3] as Set<Integer>),
-                new UserCaseBinding("id2", [3, 4, 5] as Set<Integer>),
-                new UserCaseBinding("id3", [3, 4, 5] as Set<Integer>)
+                new UserCaseBinding("admin", [1, 2, 3] as Set<Integer>),
+                new UserCaseBinding("id1",  [3, 4, 5] as Set<Integer>),
+                new UserCaseBinding("id11", [3, 4, 5] as Set<Integer>)
         ] as List<UserCaseBinding>
         userCaseBindingDao.save(bindings)
 
@@ -65,63 +63,109 @@ class UserServiceTest extends Specification {
         userService.resourceDao = userInfoDao
         userService.userCaseBindingDao = userCaseBindingDao
         userService.caseService = caseService
+        userService.adminUserId = "admin"
+        userService.adminPassword = "admin"
+        userService.passwordEncoder = Mock(PasswordEncoder)
         userService.init()
-
     }
 
     def "init"() {
         expect:
         userService.resourceMap.size() == 3
+        with(userService.resourceMap["admin"]) {
+            userId == "admin"
+            userName == "admin"
+            role == Role.ADMIN
+        }
         with(userService.resourceMap["id1"]) {
             userId == "id1"
             userName == "user1"
-            role == "admin"
-        }
-        with(userService.resourceMap["id2"]) {
-            userId == "id2"
-            userName == "user2"
-            role == "user"
+            role == Role.USER
         }
         with(userService.resourceMap["id100"]) {
             userId == "id100"
             userName == "user100"
-            role == "user"
+            role == Role.USER
         }
         userService.bindingMap.size() == 2
+        with(userService.bindingMap["admin"]) {
+            userId() == "admin"
+            caseSet() == [1, 2] as Set<Integer>
+        }
         with(userService.bindingMap["id1"]) {
             userId() == "id1"
-            caseSet() == [1, 2] as Set<Integer>
+            caseSet() == [4, 5] as Set<Integer>
+        }
+    }
+
+    def "addResource"() {
+        when:
+        def userInfo = new UserInfo("id2", "user2", Role.USER, "user2-pass")
+        userInfo = userService.addResource(userInfo)
+        userService.updateUserBinding(new UserCaseBinding("id2", [3, 4, 5] as Set<Integer>))
+
+        then:
+        1 * userService.passwordEncoder.encode(_) >> {}
+        with(userInfo) {
+            userId == "id2"
+            userName == "user2"
+            role == Role.USER
+            password == "***"
+        }
+        with(userService.resourceMap["id2"]) {
+            userId == "id2"
+            userName == "user2"
+            role == Role.USER
         }
         with(userService.bindingMap["id2"]) {
             userId() == "id2"
             caseSet() == [4, 5] as Set<Integer>
         }
+
+        when:
+        userInfo = new UserInfo("id2", "user2", Role.USER, "user2-pass")
+        userService.addResource(userInfo)
+
+        then:
+        thrown(TimeRecorderException)
     }
 
     def "updateResource"() {
         when:
-        def userInfo = new UserInfo("id100").with(true) {
-            userName = "user100-updated"
-            role = "user-updated"
-        }
+        def userInfo = new UserInfo("id100", "user100-updated", Role.USER, "user100-updated")
         userInfo = userService.updateResource(userInfo)
 
         then:
+        1 * userService.passwordEncoder.encode(_) >> {}
         with(userInfo) {
             userId == "id100"
             userName == "user100-updated"
-            role == "user-updated"
+            role == Role.USER
+            password == "***"
         }
         with(userService.resourceMap["id100"]) {
             userId == "id100"
             userName == "user100-updated"
-            role == "user-updated"
+            role == Role.USER
+        }
+
+        when: // update without new password
+        userInfo = new UserInfo("id100", "user100-updated-updated", Role.USER, "")
+        userInfo = userService.updateResource(userInfo)
+
+        then:
+        0 * userService.passwordEncoder.encode(_) >> {}
+        with(userInfo) {
+            userId == "id100"
+            userName == "user100-updated-updated"
+            role == Role.USER
+            password == "***"
         }
 
         when:
         userInfo = new UserInfo("id200").with(true) {
             userName = "user200-updated"
-            role = "user-updated"
+            role = Role.USER
         }
         userService.updateResource(userInfo)
 
@@ -137,9 +181,9 @@ class UserServiceTest extends Specification {
         then:
         userService.resourceMap.size() == 2
         userService.bindingMap.size() == 1
-        userService.resourceMap.containsKey("id2")
+        userService.resourceMap.containsKey("admin")
         userService.resourceMap.containsKey("id100")
-        userService.bindingMap.containsKey("id2")
+        userService.bindingMap.containsKey("admin")
         bindings.size() == 1
     }
 
@@ -157,7 +201,7 @@ class UserServiceTest extends Specification {
         bindings.size()== 0
 
         when:
-        bindings = userService.getUserBindings("id2")
+        bindings = userService.getUserBindings("id1")
 
         then:
         bindings.size() == 2
