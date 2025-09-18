@@ -137,8 +137,8 @@ jobs:
       - name: Build project
         run: |
           cd client
-          set CI=
-          set author=Garay
+          $env:CI=""
+          $env:author="Gary"
           npm run build
 
 
