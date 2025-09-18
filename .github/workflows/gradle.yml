@@ -118,6 +118,24 @@ jobs:
 #      id: deployment
 #      uses: actions/deploy-pages@v4
 
+  build-client-windows:
+    runs-on: windows-latest # Specifies a Windows virtual machine runner
+
+    steps:
+      - uses: actions/checkout@v4 # Checks out your repository code
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Specify your desired Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build # Assumes you have a 'build' script in your package.json
+
+
   package-and-deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
