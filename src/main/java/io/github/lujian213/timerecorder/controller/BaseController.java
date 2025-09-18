@@ -4,6 +4,7 @@ import io.github.lujian213.timerecorder.exception.TimeRecorderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.Callable;
@@ -35,6 +36,8 @@ public class BaseController {
         log.error(msg, e);
         if (e instanceof TimeRecorderException) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } else if (e instanceof AccessDeniedException) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } else {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }

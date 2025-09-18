@@ -1,5 +1,6 @@
 package io.github.lujian213.timerecorder.dao
 
+import io.github.lujian213.timerecorder.model.Role
 import io.github.lujian213.timerecorder.model.UserInfo
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -19,11 +20,11 @@ class UserDaoTest extends Specification {
         def userList = [
                 new UserInfo("id1").with(true){
                     userName = "user1"
-                    role = "admin"
+                    role = Role.ADMIN
                 },
                 new UserInfo("id2").with(true) {
                     userName = "user2"
-                    role = "user"
+                    role = Role.USER
                 }
         ] as List<UserInfo>
         userDao.save(userList)
@@ -39,12 +40,12 @@ class UserDaoTest extends Specification {
         with(userList[0])    {
             userId == "id1"
             userName == "user1"
-            role == "admin"
+            role == Role.ADMIN
         }
         with(userList[1]) {
             userId == "id2"
             userName == "user2"
-            role == "user"
+            role == Role.USER
         }
     }
 }
