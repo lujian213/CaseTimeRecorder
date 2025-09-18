@@ -8,6 +8,7 @@ import io.github.lujian213.timerecorder.model.CaseTimeRecords;
 import io.github.lujian213.timerecorder.model.TimeRecord;
 import io.github.lujian213.timerecorder.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -65,10 +66,13 @@ public class CaseTimeRecordsService extends ResourceService<Integer, CaseTimeRec
         return addTimeRecord(record);
     }
 
-    public TimeRecord stopRecord(int caseId, int recordId) {
+    public TimeRecord stopRecord(int caseId, int recordId, String userId) {
         synchronized (resourceMap) {
             var record = findTimeRecord(caseId, recordId)
                     .orElseThrow(()->new TimeRecorderException("time record {%d} is not found".formatted(recordId)));
+            if (!Objects.equals(record.getUserId(), userId)) {
+                throw new AccessDeniedException("access denied");
+            }
             return updateTimeRecord(record.setEndTime(System.currentTimeMillis()));
         }
     }

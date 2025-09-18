@@ -14,6 +14,7 @@ import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
@@ -67,8 +68,24 @@ class TimeRecorderControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(record)))
     }
 
-    @WithMockUser(roles = "USER")
+    @WithMockUser(roles = "USER", username = "user1")
     def "stopTimeRecord"() {
+        expect:
+        mockMvc.perform(post("/record/stop")
+                .param("caseId", "2")
+                .param("userId", "user2")
+                .param("recordId", "1"))
+                .andExpect(status().is(403))
+
+        when:
+        1 * caseTimeRecordsService.stopRecord(2, 1, "user1") >> {throw new AccessDeniedException("no access")}
+        then:
+        mockMvc.perform(post("/record/stop")
+                .param("caseId", "2")
+                .param("userId", "user1")
+                .param("recordId", "1"))
+                .andExpect(status().is(403))
+
         when:
         def record = new TimeRecord(1).with(true) {
             caseId = 2
@@ -76,10 +93,11 @@ class TimeRecorderControllerTest extends Specification {
             category = "cat1"
             comments = "comm1"
         }
-        1 * caseTimeRecordsService.stopRecord(2, 1) >> record
+        1 * caseTimeRecordsService.stopRecord(2, 1, "user1") >> record
         then:
         mockMvc.perform(post("/record/stop")
                 .param("caseId", "2")
+                .param("userId", "user1")
                 .param("recordId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))

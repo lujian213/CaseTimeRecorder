@@ -7,6 +7,7 @@ import io.github.lujian213.timerecorder.model.Case
 import io.github.lujian213.timerecorder.model.CaseTimeRecords
 import io.github.lujian213.timerecorder.model.TimeRecord
 import io.github.lujian213.timerecorder.utils.Constants
+import org.springframework.security.access.AccessDeniedException
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -144,18 +145,18 @@ class CaseTimeRecordsServiceTest extends Specification {
 
     def "stopRecord"() {
         when:
-        caseTimeRecordsService.stopRecord(1, 5)
+        caseTimeRecordsService.stopRecord(1, 5, "id3")
         then:
         thrown(TimeRecorderException)
 
         when:
-        caseTimeRecordsService.stopRecord(3, 5)
+        caseTimeRecordsService.stopRecord(3, 5, "id3")
         then:
         thrown(TimeRecorderException)
 
         when:
         caseTimeRecordsService.startRecord(1, "id3", "email", "some comments")
-        def record = caseTimeRecordsService.stopRecord(1, 7)
+        def record = caseTimeRecordsService.stopRecord(1, 7, "id3")
         then:
         with(record) {
             recordId == 7
@@ -170,6 +171,12 @@ class CaseTimeRecordsServiceTest extends Specification {
             size() == 2
             it[1].timeRecords()[2].recordId == 7
         }
+
+        when:
+        caseTimeRecordsService.startRecord(1, "id3", "email", "some comments")
+        caseTimeRecordsService.stopRecord(1, 7, "id30")
+        then:
+        thrown(AccessDeniedException)
 
         when:
         def recordsList = new CaseTimeRecordsDao(tempDir).load()

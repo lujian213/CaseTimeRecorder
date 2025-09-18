@@ -58,12 +58,12 @@ public class TimeRecorderController extends BaseController {
                 () -> caseTimeRecordersService.startRecord(caseId, authentication.getName(), category, comments));
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER') and #userId == authentication.name")
     @Operation(summary = "stop a time recorder")
     @PostMapping(value = "/record/stop", produces = MediaType.APPLICATION_JSON_VALUE)
-    public TimeRecord stopTimeRecord(@RequestParam int caseId, @RequestParam int recordId) {
+    public TimeRecord stopTimeRecord(@RequestParam int caseId, @RequestParam int recordId, @RequestParam String userId) {
         return runWithExceptionHandling("stop time record error",
-                () -> caseTimeRecordersService.stopRecord(caseId, recordId));
+                () -> caseTimeRecordersService.stopRecord(caseId, recordId, userId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
