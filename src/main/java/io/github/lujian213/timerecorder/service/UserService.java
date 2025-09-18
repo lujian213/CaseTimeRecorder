@@ -28,11 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserService extends ResourceService<String, UserInfo, UserInfoDao> implements UserDetailsService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    @Value("${admin.password:admin}")
-    private String adminPassword;
-    @Value("${admin.userId:admin}")
     private String adminUserId;
-
+    private String adminPassword;
     private CaseService caseService;
     private UserCaseBindingDao userCaseBindingDao;
     private PasswordEncoder passwordEncoder;
@@ -46,6 +43,14 @@ public class UserService extends ResourceService<String, UserInfo, UserInfoDao> 
     @Autowired
     public void setUserCaseBindingDao(UserCaseBindingDao userCaseBindingDao) {
         this.userCaseBindingDao = userCaseBindingDao;
+    }
+    @Value("${admin.userId:admin}")
+    public void setAdminUserId(String adminUserId) {
+        this.adminUserId = adminUserId;
+    }
+    @Value("${admin.password:admin}")
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
     }
     @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {

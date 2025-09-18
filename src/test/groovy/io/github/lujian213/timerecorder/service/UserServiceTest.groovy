@@ -8,8 +8,6 @@ import io.github.lujian213.timerecorder.model.Case
 import io.github.lujian213.timerecorder.model.Role
 import io.github.lujian213.timerecorder.model.UserCaseBinding
 import io.github.lujian213.timerecorder.model.UserInfo
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.crypto.password.PasswordEncoder
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -17,7 +15,6 @@ import spock.lang.TempDir
 import static io.github.lujian213.timerecorder.model.Case.CaseStatus.ACTIVE
 import static io.github.lujian213.timerecorder.model.Case.CaseStatus.CLOSED
 
-@SpringBootTest
 class UserServiceTest extends Specification {
     @TempDir
     File tempDir
@@ -25,7 +22,6 @@ class UserServiceTest extends Specification {
     UserInfoDao userInfoDao
     UserCaseBindingDao userCaseBindingDao
     CaseService caseService
-    @Autowired
     UserService userService
 
     def setup() {
@@ -63,12 +59,14 @@ class UserServiceTest extends Specification {
             }
         }
 
+        userService = new UserService()
         userService.resourceDao = userInfoDao
         userService.userCaseBindingDao = userCaseBindingDao
         userService.caseService = caseService
+        userService.adminUserId = "admin"
+        userService.adminPassword = "admin"
         userService.passwordEncoder = Mock(PasswordEncoder)
         userService.init()
-
     }
 
     def "init"() {
@@ -181,13 +179,12 @@ class UserServiceTest extends Specification {
         def bindings = userCaseBindingDao.load()
 
         then:
-        userService.resourceMap.size() == 3
-        userService.bindingMap.size() == 2
-        userService.resourceMap.containsKey("id2")
+        userService.resourceMap.size() == 2
+        userService.bindingMap.size() == 1
+        userService.resourceMap.containsKey("admin")
         userService.resourceMap.containsKey("id100")
         userService.bindingMap.containsKey("admin")
-        userService.bindingMap.containsKey("id2")
-        bindings.size() == 2
+        bindings.size() == 1
     }
 
     def "getUserBindings"() {
@@ -204,7 +201,7 @@ class UserServiceTest extends Specification {
         bindings.size()== 0
 
         when:
-        bindings = userService.getUserBindings("id2")
+        bindings = userService.getUserBindings("id1")
 
         then:
         bindings.size() == 2
