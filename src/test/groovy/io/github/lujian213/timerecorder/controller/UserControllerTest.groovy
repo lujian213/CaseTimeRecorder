@@ -1,6 +1,8 @@
 package io.github.lujian213.timerecorder.controller
 
+import io.github.lujian213.timerecorder.config.SecurityConfig
 import io.github.lujian213.timerecorder.model.Case
+import io.github.lujian213.timerecorder.model.Role
 import io.github.lujian213.timerecorder.model.UserCaseBinding
 import io.github.lujian213.timerecorder.model.UserInfo
 import io.github.lujian213.timerecorder.service.UserService
@@ -9,6 +11,8 @@ import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import spock.lang.Specification
 
@@ -18,17 +22,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(UserController)
+@ContextConfiguration(classes = [SecurityConfig.class, UserController.class])
 class UserControllerTest extends Specification {
     @SpringBean
     UserService userService = Mock(UserService)
     @Autowired
     MockMvc mockMvc
 
+    @WithMockUser(roles = "ADMIN")
     def "GetUsers"() {
         when:
         def userList = [new UserInfo("id1").with(true) {
             userName = "user1"
-            role = "user"
+            role = Role.USER
         }]
         userService.getAllResources() >> userList
         then:
@@ -38,25 +44,27 @@ class UserControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(userList)))
     }
 
-    def "Login"() {
+    @WithMockUser(roles = "USER", username = "id1")
+    def "GetUser"() {
         when:
         def userInfo = new UserInfo("id1").with(true) {
             userName = "user1"
-            role = "user"
+            role = Role.USER
         }
         1 * userService.checkResource("id1") >> userInfo
         then:
-        mockMvc.perform(post("/login").param("userId", "id1"))
+        mockMvc.perform(get("/user"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(userInfo)))
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "AddUser"() {
         when:
         def userInfo = new UserInfo("id1").with(true) {
             userName = "user1"
-            role = "user"
+            role = Role.USER
         }
         userService.addResource(_) >> userInfo
         then:
@@ -67,11 +75,12 @@ class UserControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(userInfo)))
     }
 
+    @WithMockUser(roles = "USER", username = "id1")
     def "UpdateUser"() {
         when:
         def userInfo = new UserInfo("id1").with(true) {
             userName = "user1"
-            role = "user"
+            role = Role.USER
         }
         userService.updateResource(_) >> userInfo
         then:
@@ -82,6 +91,21 @@ class UserControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(userInfo)))
     }
 
+    @WithMockUser(roles = "USER", username = "id2")
+    def "UpdateUser: should be user self or admin"() {
+        when:
+        def userInfo = new UserInfo("id1").with(true) {
+            userName = "user1"
+            role = Role.USER
+        }
+        userService.updateResource(_) >> userInfo
+        then:
+        mockMvc.perform(post("/user").contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(Constants.MAPPER.writeValueAsString(userInfo)))
+                .andExpect(status().is4xxClientError())
+    }
+
+    @WithMockUser(roles = "ADMIN")
     def "DeleteUser"() {
         when:
         1 * userService.removeResource("id1") >> {}
@@ -91,6 +115,7 @@ class UserControllerTest extends Specification {
                 .andExpect(status().isOk())
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "GetUserBindings"() {
         when:
         def caseList= [new Case(1).with(true) {
@@ -106,9 +131,10 @@ class UserControllerTest extends Specification {
                 .andExpect(content().json(Constants.MAPPER.writeValueAsString(caseList)))
     }
 
+    @WithMockUser(roles = "ADMIN")
     def "UpdateUserBindings"() {
         when:
-        def caseList= [new Case(1).with(true) {
+        def caseList = [new Case(1).with(true) {
             caseName = "case1"
             description = "desc1"
             status = ACTIVE

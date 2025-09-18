@@ -24,4 +24,7 @@ public final class Constants {
     public static final CsvMapper CSV_MAPPER = new CsvMapper();
     public static final ZoneId ZONE_ID = ZoneId.of(System.getProperty("zone.id","UTC+08:00"));
     public static final DateTimeFormatter MINUTE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZONE_ID);
+    public static final String JWT_SECRET_KEY = "JWT_SECRET";
+    public static final String JWT_SECRET_DEFAULT_VALUE = "jxgEQeXHuPq8VdbyYFNkANdudQ53YUn4";
+    public static final String JWT_HEADER = "Authorization";
 }
