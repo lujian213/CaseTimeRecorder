@@ -27,15 +27,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-#    - name: Setup Node.js
-#      uses: actions/setup-node@v4
-#      with:
-#        node-version: '20.x'
-#    - name: build client
-#      run: |
-#        cd client
-#        npm i -legacy-peer-deps
-#        npm run build
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
@@ -95,13 +86,12 @@ jobs:
         run: |
           cd client
           $env:CI=""
-          $env:author="Gary"
           npm run build
       - name: Temporarily save client exe
         uses: actions/upload-artifact@v4
         with:
          name: time_recorder.exe
-         path: client/dist/win-unpacked/案例管理系统.exe
+         path: client/dist/win-unpacked/*.exe
 
   package-and-deploy:
     if: github.ref == 'refs/heads/main'
@@ -123,7 +113,7 @@ jobs:
         with:
           name: repo-zip
           path: dist/repo
-      - name: Retrieve saved client zip
+      - name: Retrieve saved client exe
         uses: actions/download-artifact@v4
         with:
           name: time_recorder.exe
@@ -132,6 +122,7 @@ jobs:
           ls -l dist/lib
           ls -l dist/repo
           ls -l dist/client
+          mv dist/client/*.exe dist/client/time_recorder.exe
       - name: Login to dockerhub
         uses: docker/login-action@v3
         with:
