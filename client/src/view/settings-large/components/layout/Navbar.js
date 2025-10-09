@@ -13,7 +13,7 @@ const Navbar = ({ activeTab, onTabChange }) => {
   return (
     <AppBar position="static" elevation={2} sx={{ 
       bgcolor: 'primary.main', 
-      color: 'white' 
+      color: 'white' ,
     }}>
       <Box sx={{ width: '100%' }}>
         <Tabs

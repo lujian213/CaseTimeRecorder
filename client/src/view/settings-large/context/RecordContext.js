@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchRecords, createRecordApi, updateRecordApi, deleteRecordApi, fetchRecordsByCaseId } from '../../../api/records';
 
 const RecordContext = createContext();
 
@@ -6,59 +7,44 @@ export const RecordProvider = ({ children }) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 初始化模拟数据
   useEffect(() => {
-    // 模拟API请求延迟
-    setTimeout(() => {
-      setRecords([
-        {
-          recordId: 1,
-          userId: "user1",
-          caseId: 1,
-          startTime: new Date('2023-07-01T09:00:00').getTime(),
-          endTime: new Date('2023-07-01T11:30:00').getTime(),
-          category: "调试",
-          comments: "修复了登录失败的问题"
-        },
-        {
-          recordId: 2,
-          userId: "user2",
-          caseId: 2,
-          startTime: new Date('2023-07-02T14:00:00').getTime(),
-          endTime: new Date('2023-07-02T16:45:00').getTime(),
-          category: "优化",
-          comments: "优化了首页加载速度"
-        }
-      ]);
-      setLoading(false);
-    }, 600);
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await fetchRecords();
+        if (mounted) setRecords(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error('Failed to load records:', e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
-  // 获取新ID
-  const getNextId = () => {
-    return records.length > 0 ? Math.max(...records.map(r => r.recordId)) + 1 : 1;
+  const reloadByCase = async (caseId) => {
+    const data = await fetchRecordsByCaseId(caseId);
+    setRecords(Array.isArray(data) ? data : []);
   };
 
-  // 创建记录
-  const createRecord = (newRecord) => {
-    const recordWithId = { ...newRecord, recordId: getNextId() };
-    setRecords(prev => [...prev, recordWithId]);
-    return recordWithId;
+  const createRecord = async (newRecord) => {
+    const created = await createRecordApi(newRecord);
+    setRecords(prev => [created, ...prev]);
+    return created;
   };
 
-  // 更新记录
-  const updateRecord = (updatedRecord) => {
-    setRecords(prev => prev.map(r => 
-      r.recordId === updatedRecord.recordId ? updatedRecord : r
-    ));
+  const updateRecord = async (updatedRecord) => {
+    const { recordId, ...payload } = updatedRecord;
+    const saved = await updateRecordApi(recordId, payload);
+    setRecords(prev => prev.map(r => r.recordId === recordId ? saved : r));
+    return saved;
   };
 
-  // 删除记录
-  const deleteRecord = (recordId) => {
+  const deleteRecord = async (recordId) => {
+    await deleteRecordApi(recordId);
     setRecords(prev => prev.filter(r => r.recordId !== recordId));
   };
 
-  // 获取特定案例的所有记录
   const getRecordsByCaseId = (caseId) => {
     return records.filter(r => r.caseId === caseId);
   };
@@ -70,7 +56,8 @@ export const RecordProvider = ({ children }) => {
       createRecord, 
       updateRecord, 
       deleteRecord,
-      getRecordsByCaseId
+      getRecordsByCaseId,
+      reloadByCase,
     }}>
       {children}
     </RecordContext.Provider>

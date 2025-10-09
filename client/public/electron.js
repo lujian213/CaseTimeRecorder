@@ -23,6 +23,9 @@ function createWindow() {
     }
   });
 
+  // 打开开发者工具
+  mainWindow.webContents.openDevTools({ mode: 'detach' });
+
   // 加载React开发服务器
   const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
@@ -88,6 +91,9 @@ ipcMain.on('open-new-window', (event, args) => {
       preload: path.join(__dirname, 'preload.js')
     }
   });
+
+  // 打开开发者工具（新窗口）
+  newWindow.webContents.openDevTools({ mode: 'detach' });
 
   // 构建带路由的URL
   const startUrl = process.env.ELECTRON_START_URL || url.format({

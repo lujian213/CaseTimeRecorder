@@ -54,9 +54,9 @@ const App = () => {
               flexDirection: 'column', 
               minHeight: 'calc(100vh - 48px)',
               borderRadius: 2,
-              boxShadow: 3,
+              //boxShadow: 3,
               overflow: 'hidden',
-              backgroundColor: 'background.paper'
+              //backgroundColor: 'background.paper'
             }}>
               {/* 导航栏 */}
               <Navbar 
