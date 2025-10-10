@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchUsers, createUserApi, updateUserApi, deleteUserApi } from '../../../api/users';
 
 const UserContext = createContext();
 
@@ -6,44 +7,39 @@ export const UserProvider = ({ children }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // 初始化模拟数据
     useEffect(() => {
-        // 模拟API请求延迟
-        setTimeout(() => {
-            setUsers([
-                { userId: "user1", userName: "张三", role: "管理员" },
-                { userId: "user2", userName: "李四", role: "开发者" },
-                { userId: "user3", userName: "王五", role: "测试员" }
-            ]);
-            setLoading(false);
-        }, 600);
+        let mounted = true;
+        (async () => {
+            try {
+                const data = await fetchUsers();
+                if (mounted) setUsers(Array.isArray(data) ? data : []);
+            } catch (e) {
+                console.error('Failed to load users:', e);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
     }, []);
 
-    // 创建用户
-    const createUser = (newUser) => {
-        // 检查用户ID是否已存在
-        const exists = users.some(u => u.userId === newUser.userId);
-        if (exists) {
-            throw new Error(`用户ID ${newUser.userId} 已存在`);
-        }
-
-        setUsers(prev => [...prev, newUser]);
-        return newUser;
+    const createUser = async (newUser) => {
+        const created = await createUserApi(newUser);
+        setUsers(prev => [created, ...prev]);
+        return created;
     };
 
-    // 更新用户
-    const updateUser = (updatedUser) => {
-        setUsers(prev => prev.map(u =>
-            u.userId === updatedUser.userId ? updatedUser : u
-        ));
+    const updateUser = async (updatedUser) => {
+        const { userId, ...payload } = updatedUser;
+        const saved = await updateUserApi(userId, payload);
+        setUsers(prev => prev.map(u => u.userId === userId ? saved : u));
+        return saved;
     };
 
-    // 删除用户
-    const deleteUser = (userId) => {
+    const deleteUser = async (userId) => {
+        await deleteUserApi(userId);
         setUsers(prev => prev.filter(u => u.userId !== userId));
     };
 
-    // 根据ID获取用户
     const getUserById = (userId) => {
         return users.find(u => u.userId === userId);
     };
