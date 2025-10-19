@@ -59,12 +59,14 @@ jobs:
         name: casetimerecorder-jar
         path: dist/lib/casetimerecorder-1.0.0.jar
         compression-level: 9
+        retention-days: 1
     - name: Temporarily save repo.zip file
       uses: actions/upload-artifact@v4
       with:
         name: repo-zip
         path: dist/repo/repo.zip
         compression-level: 9
+        retention-days: 1
 
   build-client-windows:
     runs-on: windows-latest # Specifies a Windows virtual machine runner
@@ -92,6 +94,7 @@ jobs:
         with:
          name: time_recorder.exe
          path: client/dist/win-unpacked/*.exe
+         retention-days: 1
 
   package-and-deploy:
     if: github.ref == 'refs/heads/main'
