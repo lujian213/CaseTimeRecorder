@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export const fetchRecords = async () => {
-  const { data } = await axios.get('/records');
+export const fetchRecords = async (id) => {
+  const { data } = await axios.get(`/records/${id}`);
   return data;
 };
 
@@ -23,6 +23,6 @@ export const deleteRecordApi = async (id) => {
 };
 
 export const fetchRecordsByCaseId = async (caseId) => {
-  const { data } = await axios.get(`/cases/${caseId}/records`);
+  const { data } = await axios.get(`/case/${caseId}/records`);
   return data;
 };

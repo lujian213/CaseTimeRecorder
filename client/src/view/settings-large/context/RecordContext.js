@@ -11,8 +11,8 @@ export const RecordProvider = ({ children }) => {
     let mounted = true;
     (async () => {
       try {
-        const data = await fetchRecords();
-        if (mounted) setRecords(Array.isArray(data) ? data : []);
+        const { timeRecords } = await fetchRecords(1) || [];
+        if (mounted) setRecords(Array.isArray(timeRecords) ? timeRecords : []);
       } catch (e) {
         console.error('Failed to load records:', e);
       } finally {
@@ -23,8 +23,8 @@ export const RecordProvider = ({ children }) => {
   }, []);
 
   const reloadByCase = async (caseId) => {
-    const data = await fetchRecordsByCaseId(caseId);
-    setRecords(Array.isArray(data) ? data : []);
+    const { timeRecords } = await fetchRecords(caseId) || [];
+    setRecords(Array.isArray(timeRecords) ? timeRecords : []);
   };
 
   const createRecord = async (newRecord) => {
@@ -50,11 +50,11 @@ export const RecordProvider = ({ children }) => {
   };
 
   return (
-    <RecordContext.Provider value={{ 
-      records, 
-      loading, 
-      createRecord, 
-      updateRecord, 
+    <RecordContext.Provider value={{
+      records,
+      loading,
+      createRecord,
+      updateRecord,
       deleteRecord,
       getRecordsByCaseId,
       reloadByCase,

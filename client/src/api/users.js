@@ -7,13 +7,13 @@ export const fetchUsers = async () => {
 
 export const createUserApi = async (payload) => {
   // Backend expects PUT for create
-  const { data } = await axios.put('/users', payload);
+  const { data } = await axios.put('/user', payload);
   return data;
 };
 
-export const updateUserApi = async (id, payload) => {
+export const updateUserApi = async (payload) => {
   // Backend expects POST for update
-  const { data } = await axios.post(`/users/${id}`, payload);
+  const { data } = await axios.post(`/user`, payload);
   return data;
 };
 

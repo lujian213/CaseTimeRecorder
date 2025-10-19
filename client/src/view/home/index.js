@@ -154,7 +154,8 @@ export default function Home() {
         await axios.post('https://law-ai.top/api/record/stop', null, {
             params: {
                 caseId: task.caseId,
-                recordId: task.recordId
+                recordId: task.recordId,
+                userId: 'admin'
             }
         })
         if (activeTimer) {

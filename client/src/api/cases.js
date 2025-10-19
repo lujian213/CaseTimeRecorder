@@ -7,17 +7,17 @@ export const fetchCases = async () => {
 
 export const createCaseApi = async (payload) => {
   // Backend expects PUT for create
-  const { data } = await axios.put('/cases', payload);
+  const { data } = await axios.put('/case', payload);
   return data;
 };
 
-export const updateCaseApi = async (id, payload) => {
+export const updateCaseApi = async (payload) => {
   // Backend expects POST for update
-  const { data } = await axios.post(`/cases/${id}`, payload);
+  const { data } = await axios.post(`/case`, payload);
   return data;
 };
 
 export const deleteCaseApi = async (id) => {
-  const { data } = await axios.delete(`/cases/${id}`);
+  const { data } = await axios.delete(`/case/${id}`);
   return data;
 };

@@ -29,8 +29,8 @@ export const UserProvider = ({ children }) => {
     };
 
     const updateUser = async (updatedUser) => {
-        const { userId, ...payload } = updatedUser;
-        const saved = await updateUserApi(userId, payload);
+        const { userId } = updatedUser;
+        const saved = await updateUserApi(updatedUser);
         setUsers(prev => prev.map(u => u.userId === userId ? saved : u));
         return saved;
     };

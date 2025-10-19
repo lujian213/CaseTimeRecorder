@@ -167,12 +167,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData }) => {
               label="角色"
               sx={{ transition: 'all 0.2s' }}
             >
-              <MenuItem value="">请选择角色</MenuItem>
-              <MenuItem value="管理员">管理员</MenuItem>
-              <MenuItem value="开发者">开发者</MenuItem>
-              <MenuItem value="测试员">测试员</MenuItem>
-              <MenuItem value="项目经理">项目经理</MenuItem>
-              <MenuItem value="其他">其他</MenuItem>
+              <MenuItem value="USER">USER</MenuItem>
+              <MenuItem value="ADMIN">ADMIN</MenuItem>
             </Select>
           </FormControl>
         </Box>

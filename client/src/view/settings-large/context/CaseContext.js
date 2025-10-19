@@ -29,8 +29,8 @@ export const CaseProvider = ({ children }) => {
   };
 
   const updateCase = async (updatedCase) => {
-    const { caseId, ...payload } = updatedCase;
-    const saved = await updateCaseApi(caseId, payload);
+    const { caseId } = updatedCase;
+    const saved = await updateCaseApi(updatedCase);
     setCases(prev => prev.map(c => c.caseId === caseId ? saved : c));
     return saved;
   };

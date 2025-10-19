@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, 
@@ -14,14 +14,15 @@ import { useRecordContext } from '../../context/RecordContext';
 import { useCaseContext } from '../../context/CaseContext';
 import { useUserContext } from '../../context/UserContext';
 import { formatDateTime, calculateHours } from '../../utils/dateUtils';
+import RecordForm from './RecordForm';
 
 const RecordList = ({ showNotification }) => {
-  const { records, loading, deleteRecord } = useRecordContext();
+  const { records, loading, deleteRecord, reloadByCase } = useRecordContext();
   const { cases } = useCaseContext();
   const { users } = useUserContext();
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCaseId, setSelectedCaseId] = useState('all');
+  const [selectedCaseId, setSelectedCaseId] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
 
@@ -44,6 +45,10 @@ const RecordList = ({ showNotification }) => {
       record.comments.toLowerCase().includes(searchLower)
     );
   });
+
+  useEffect(() => {
+    reloadByCase(selectedCaseId);
+  }, [selectedCaseId]);
 
   // 打开新增表单
   const handleAdd = () => {
@@ -227,12 +232,12 @@ const RecordList = ({ showNotification }) => {
       </TableContainer>
       
       {/* 记录表单对话框 */}
-      {/* <RecordForm
+      <RecordForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
         onSubmit={handleFormSubmit}
         initialData={currentRecord}
-      /> */}
+      />
     </Box>
   );
 };
