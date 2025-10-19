@@ -7,8 +7,10 @@ import {
 } from '@mui/material';
 import { 
   Add as AddIcon, Edit as EditIcon, 
-  Delete as DeleteIcon, Search as SearchIcon
+  Delete as DeleteIcon, Search as SearchIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 //import RecordForm from './RecordForm';
 import { useRecordContext } from '../../context/RecordContext';
 import { useCaseContext } from '../../context/CaseContext';
@@ -25,6 +27,7 @@ const RecordList = ({ showNotification }) => {
   const [selectedCaseId, setSelectedCaseId] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
+  const [downloading, setDownloading] = useState(false);
 
   // 过滤记录
   const filteredRecords = records.filter(record => {
@@ -45,10 +48,6 @@ const RecordList = ({ showNotification }) => {
       record.comments.toLowerCase().includes(searchLower)
     );
   });
-
-  useEffect(() => {
-    reloadByCase(selectedCaseId);
-  }, [selectedCaseId]);
 
   // 打开新增表单
   const handleAdd = () => {
@@ -72,6 +71,76 @@ const RecordList = ({ showNotification }) => {
   const handleFormSubmit = (data, isNew) => {
     setFormOpen(false);
     showNotification(isNew ? '记录创建成功' : '记录更新成功');
+  };
+
+  // 处理下载
+  const handleDownload = async () => {
+    if (selectedCaseId === 'all') {
+      showNotification('请先选择一个具体案例', 'warning');
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const response = await axios.get(`/exportrecords/${selectedCaseId}`, {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/octet-stream'
+        }
+      });
+
+      // 创建下载链接
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // 获取案例名称作为文件名
+      const caseName = getCaseName(selectedCaseId);
+      // 清理文件名中的特殊字符
+      const cleanCaseName = caseName.replace(/[<>:"/\\|?*]/g, '_');
+      
+      // 从响应头获取文件类型
+      const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
+      let extension = '.xlsx'; // 默认扩展名
+      
+      if (contentType.includes('csv') || contentType.includes('text/csv')) {
+        extension = '.csv';
+      } else if (contentType.includes('json') || contentType.includes('application/json')) {
+        extension = '.json';
+      } else if (contentType.includes('pdf') || contentType.includes('application/pdf')) {
+        extension = '.pdf';
+      } else if (contentType.includes('excel') || contentType.includes('spreadsheet') || contentType.includes('application/vnd.ms-excel')) {
+        extension = '.xlsx';
+      } else if (contentType.includes('text/plain')) {
+        extension = '.txt';
+      } else if (contentType.includes('xml') || contentType.includes('application/xml')) {
+        extension = '.xml';
+      } else if (contentType.includes('zip') || contentType.includes('application/zip')) {
+        extension = '.zip';
+      } else if (contentType.includes('doc') || contentType.includes('application/msword')) {
+        extension = '.doc';
+      } else if (contentType.includes('docx') || contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        extension = '.docx';
+      } else if (contentType.includes('text/html')) {
+        extension = '.html';
+      }
+      
+      const fileName = `${cleanCaseName}_records_${new Date().toISOString().split('T')[0]}${extension}`;
+      link.download = fileName;
+      
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      showNotification('记录导出成功', 'success');
+    } catch (error) {
+      console.error('Download failed:', error);
+      showNotification('导出失败，请重试', 'error');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   // 获取案例名称
@@ -101,19 +170,36 @@ const RecordList = ({ showNotification }) => {
           记录管理
         </Typography>
         
-        <Fab 
-          color="primary" 
-          size="small" 
-          onClick={handleAdd}
-          sx={{
-            transition: 'all 0.2s',
-            '&:hover': {
-              transform: 'scale(1.05)'
-            }
-          }}
-        >
-          <AddIcon />
-        </Fab>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={downloading ? <CircularProgress size={16} /> : <DownloadIcon />}
+            onClick={handleDownload}
+            disabled={downloading || selectedCaseId === 'all'}
+            sx={{
+              transition: 'all 0.2s',
+              '&:hover': {
+                transform: 'scale(1.02)'
+              }
+            }}
+          >
+            {downloading ? '导出中...' : '导出记录'}
+          </Button>
+          
+          <Fab 
+            color="primary" 
+            size="small" 
+            onClick={handleAdd}
+            sx={{
+              transition: 'all 0.2s',
+              '&:hover': {
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        </Box>
       </Box>
       
       {/* 筛选和搜索 */}
@@ -195,7 +281,7 @@ const RecordList = ({ showNotification }) => {
                   <TableCell>{formatDateTime(record.startTime)}</TableCell>
                   <TableCell>{formatDateTime(record.endTime)}</TableCell>
                   <TableCell>
-                    {calculateHours(record.startTime, record.endTime)}
+                    {Math.max(0, calculateHours(record.startTime, record.endTime))}
                   </TableCell>
                   <TableCell>{record.category}</TableCell>
                   <TableCell align="right">

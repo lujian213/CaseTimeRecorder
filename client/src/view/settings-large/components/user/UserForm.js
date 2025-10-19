@@ -11,7 +11,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData }) => {
   const [formData, setFormData] = useState({
     userId: '',
     userName: '',
-    role: ''
+    role: '',
+    password: ''
   });
   const [errors, setErrors] = useState({});
   const [isNewUser, setIsNewUser] = useState(true);
@@ -24,14 +25,16 @@ const UserForm = ({ open, onClose, onSubmit, initialData }) => {
       setFormData({
         userId: initialData.userId,
         userName: initialData.userName || '',
-        role: initialData.role || ''
+        role: initialData.role || '',
+        password: initialData.password ? '********' : ''
       });
       setIsNewUser(false);
     } else {
       setFormData({
         userId: '',
         userName: '',
-        role: ''
+        role: '',
+        password: ''
       });
       setIsNewUser(true);
     }
@@ -78,6 +81,10 @@ const UserForm = ({ open, onClose, onSubmit, initialData }) => {
     
     if (!formData.role) {
       newErrors.role = '请选择角色';
+    }
+    
+    if (isNewUser && !formData.password.trim()) {
+      newErrors.password = '密码不能为空';
     }
     
     setErrors(newErrors);
@@ -155,6 +162,19 @@ const UserForm = ({ open, onClose, onSubmit, initialData }) => {
             size="small"
             error={!!errors.userName}
             helperText={errors.userName}
+            sx={{ transition: 'all 0.2s' }}
+          />
+          
+          <TextField
+            label="密码"
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            fullWidth
+            size="small"
+            error={!!errors.password}
+            helperText={errors.password || (isNewUser ? '请输入密码' : '留空表示不修改密码')}
             sx={{ transition: 'all 0.2s' }}
           />
           

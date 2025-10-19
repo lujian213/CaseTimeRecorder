@@ -126,6 +126,7 @@ const UserList = ({ showNotification }) => {
                         <TableRow sx={{ backgroundColor: 'action.hover' }}>
                             <TableCell>用户ID</TableCell>
                             <TableCell>用户名</TableCell>
+                            <TableCell>密码</TableCell>
                             <TableCell>角色</TableCell>
                             <TableCell align="right">操作</TableCell>
                         </TableRow>
@@ -133,7 +134,7 @@ const UserList = ({ showNotification }) => {
                     <TableBody>
                         {filteredUsers.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                                     没有找到用户
                                 </TableCell>
                             </TableRow>
@@ -151,6 +152,9 @@ const UserList = ({ showNotification }) => {
                                 >
                                     <TableCell>{user.userId}</TableCell>
                                     <TableCell>{user.userName}</TableCell>
+                                    <TableCell>
+                                        {user.password ? '••••••••' : '未设置'}
+                                    </TableCell>
                                     <TableCell>{getRoleChip(user.role)}</TableCell>
                                     <TableCell align="right">
                                         <IconButton

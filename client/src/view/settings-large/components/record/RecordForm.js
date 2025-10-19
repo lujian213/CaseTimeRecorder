@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogContentText,
   DialogActions, Button, TextField, MenuItem, Box,
@@ -11,6 +11,7 @@ import { useRecordContext } from '../../context/RecordContext';
 import { useCaseContext } from '../../context/CaseContext';
 import { useUserContext } from '../../context/UserContext';
 import { calculateHours } from '../../utils/dateUtils';
+import { fetchCategories } from '../../../../api/categories';
 
 const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
   const { createRecord, updateRecord } = useRecordContext();
@@ -27,6 +28,41 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
   });
   const [errors, setErrors] = useState({});
   const [duration, setDuration] = useState('0');
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  // 使用 useMemo 优化计算
+  const memoizedDuration = useMemo(() => {
+    if (formData.startTime && formData.endTime) {
+      return calculateHours(formData.startTime.getTime(), formData.endTime.getTime());
+    }
+    return '0';
+  }, [formData.startTime, formData.endTime]);
+
+  // 使用 useMemo 优化案例和用户选项
+  const caseOptions = useMemo(() => 
+    cases.map(caseItem => (
+      <MenuItem key={caseItem.caseId} value={caseItem.caseId}>
+        {caseItem.caseName}
+      </MenuItem>
+    )), [cases]
+  );
+
+  const userOptions = useMemo(() => 
+    users.map(user => (
+      <MenuItem key={user.userId} value={user.userId}>
+        {user.userName} ({user.userId})
+      </MenuItem>
+    )), [users]
+  );
+
+  const categoryOptions = useMemo(() => 
+    categories.map(category => (
+      <MenuItem key={category.name || category} value={category.name || category}>
+        {category.name || category}
+      </MenuItem>
+    )), [categories]
+  );
 
   // 初始化表单数据
   useEffect(() => {
@@ -49,24 +85,38 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
         userId: defaultUserId,
         startTime: new Date(),
         endTime: new Date(Date.now() + 3600000),
-        category: '',
+        category: categories.length > 0 ? (categories[0].name || categories[0]) : '',
         comments: ''
       });
     }
     setErrors({});
-  }, [initialData, open, cases, users]);
+  }, [initialData, open, cases, users, categories]);
 
-  // 计算时长
+  // 更新 duration 状态
   useEffect(() => {
-    if (formData.startTime && formData.endTime) {
-      setDuration(
-        calculateHours(formData.startTime.getTime(), formData.endTime.getTime())
-      );
-    }
-  }, [formData.startTime, formData.endTime]);
+    setDuration(memoizedDuration);
+  }, [memoizedDuration]);
 
-  // 处理输入变化
-  const handleChange = (e) => {
+  // 获取分类数据
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await fetchCategories();
+        if (mounted) {
+          setCategories(Array.isArray(data) ? data : []);
+          setCategoriesLoading(false);
+        }
+      } catch (e) {
+        console.error('Failed to load categories:', e);
+        if (mounted) setCategoriesLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // 处理输入变化 - 使用 useCallback 优化
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
@@ -78,10 +128,10 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
         return newErrors;
       });
     }
-  };
+  }, [errors]);
 
-  // 处理日期时间变化
-  const handleDateTimeChange = (name, date) => {
+  // 处理日期时间变化 - 使用 useCallback 优化
+  const handleDateTimeChange = useCallback((name, date) => {
     if (date) {
       setFormData(prev => ({ ...prev, [name]: date }));
       
@@ -94,10 +144,10 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
         });
       }
     }
-  };
+  }, [errors]);
 
-  // 表单验证
-  const validateForm = () => {
+  // 表单验证 - 使用 useCallback 优化
+  const validateForm = useCallback(() => {
     const newErrors = {};
     
     if (!formData.caseId || formData.caseId === 0) {
@@ -124,10 +174,10 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  // 处理提交
-  const handleSubmit = () => {
+  // 处理提交 - 使用 useCallback 优化
+  const handleSubmit = useCallback(() => {
     if (validateForm()) {
       const recordData = {
         ...formData,
@@ -146,7 +196,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
         onSubmit(newRecord, true);
       }
     }
-  };
+  }, [validateForm, formData, initialData, updateRecord, createRecord, onSubmit]);
 
   return (
     <Dialog
@@ -187,11 +237,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
               onChange={handleChange}
               label="案例"
             >
-              {cases.map(caseItem => (
-                <MenuItem key={caseItem.caseId} value={caseItem.caseId}>
-                  {caseItem.caseName}
-                </MenuItem>
-              ))}
+              {caseOptions}
             </Select>
           </FormControl>
           
@@ -203,11 +249,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
               onChange={handleChange}
               label="用户"
             >
-              {users.map(user => (
-                <MenuItem key={user.userId} value={user.userId}>
-                  {user.userName} ({user.userId})
-                </MenuItem>
-              ))}
+              {userOptions}
             </Select>
           </FormControl>
           
@@ -216,14 +258,13 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
               label="开始时间"
               value={formData.startTime}
               onChange={(date) => handleDateTimeChange('startTime', date)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  error={!!errors.startTime}
-                  helperText={errors.startTime}
-                />
-              )}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  error: !!errors.startTime,
+                  helperText: errors.startTime
+                }
+              }}
             />
           </LocalizationProvider>
           
@@ -232,26 +273,33 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
               label="结束时间"
               value={formData.endTime}
               onChange={(date) => handleDateTimeChange('endTime', date)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  error={!!errors.endTime}
-                  helperText={errors.endTime}
-                />
-              )}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  error: !!errors.endTime,
+                  helperText: errors.endTime
+                }
+              }}
             />
           </LocalizationProvider>
           
-          <TextField
-            label="类别"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            fullWidth
-            error={!!errors.category}
-            helperText={errors.category}
-          />
+          <FormControl fullWidth error={!!errors.category}>
+            <InputLabel>类别</InputLabel>
+            <Select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              label="类别"
+              disabled={categoriesLoading}
+            >
+              {categoryOptions}
+            </Select>
+            {errors.category && (
+              <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5, ml: 1.75 }}>
+                {errors.category}
+              </Box>
+            )}
+          </FormControl>
           
           <TextField
             label="备注"
@@ -284,4 +332,5 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
   );
 };
 
-export default RecordForm;
+// 使用 memo 优化组件重渲染
+export default memo(RecordForm);
