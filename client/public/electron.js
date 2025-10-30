@@ -99,11 +99,9 @@ ipcMain.on('open-new-window', (event, args) => {
   const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
-    slashes: true
+    slashes: true,
   });
-
-  // 加载应用并跳转到指定路由
-  const urlWithRoute = `${startUrl}/#/${args.route}`;
+  const urlWithRoute = `${startUrl}#/${args.route}`; // 没有 /
   newWindow.loadURL(urlWithRoute);
 
   newWindow.on('closed', () => {
