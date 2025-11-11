@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Box, Typography, Paper, Table, TableBody, TableCell, 
-  TableContainer, TableHead, TableRow, IconButton, 
+import {
+  Box, Typography, Paper, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, IconButton,
   TextField, Button, CircularProgress, Fab,
   InputAdornment, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
-import { 
-  Add as AddIcon, Edit as EditIcon, 
+import {
+  Add as AddIcon, Edit as EditIcon,
   Delete as DeleteIcon, Search as SearchIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
@@ -22,7 +22,7 @@ const RecordList = ({ showNotification }) => {
   const { records, loading, deleteRecord, reloadByCase } = useRecordContext();
   const { cases } = useCaseContext();
   const { users } = useUserContext();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCaseId, setSelectedCaseId] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -35,12 +35,12 @@ const RecordList = ({ showNotification }) => {
     if (selectedCaseId !== 'all' && record.caseId !== Number(selectedCaseId)) {
       return false;
     }
-    
+
     // 搜索词筛选
     const searchLower = searchTerm.toLowerCase();
     const caseName = cases.find(c => c.caseId === record.caseId)?.caseName || '';
     const userName = users.find(u => u.userId === record.userId)?.userName || '';
-    
+
     return (
       caseName.toLowerCase().includes(searchLower) ||
       userName.toLowerCase().includes(searchLower) ||
@@ -62,8 +62,8 @@ const RecordList = ({ showNotification }) => {
   };
 
   // 处理删除
-  const handleDelete = (recordId) => {
-    deleteRecord(recordId);
+  const handleDelete = (caseId, recordId) => {
+    deleteRecord(caseId, recordId);
     showNotification('记录已删除', 'info');
   };
 
@@ -93,16 +93,16 @@ const RecordList = ({ showNotification }) => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       // 获取案例名称作为文件名
       const caseName = getCaseName(selectedCaseId);
       // 清理文件名中的特殊字符
       const cleanCaseName = caseName.replace(/[<>:"/\\|?*]/g, '_');
-      
+
       // 从响应头获取文件类型
       const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
       let extension = '.xlsx'; // 默认扩展名
-      
+
       if (contentType.includes('csv') || contentType.includes('text/csv')) {
         extension = '.csv';
       } else if (contentType.includes('json') || contentType.includes('application/json')) {
@@ -124,10 +124,10 @@ const RecordList = ({ showNotification }) => {
       } else if (contentType.includes('text/html')) {
         extension = '.html';
       }
-      
+
       const fileName = `${cleanCaseName}_records_${new Date().toISOString().split('T')[0]}${extension}`;
       link.download = fileName;
-      
+
       // 触发下载
       document.body.appendChild(link);
       link.click();
@@ -169,7 +169,7 @@ const RecordList = ({ showNotification }) => {
         <Typography variant="h6" component="h1">
           记录管理
         </Typography>
-        
+
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
             variant="outlined"
@@ -185,10 +185,10 @@ const RecordList = ({ showNotification }) => {
           >
             {downloading ? '导出中...' : '导出记录'}
           </Button>
-          
-          <Fab 
-            color="primary" 
-            size="small" 
+
+          <Fab
+            color="primary"
+            size="small"
             onClick={handleAdd}
             sx={{
               transition: 'all 0.2s',
@@ -201,7 +201,7 @@ const RecordList = ({ showNotification }) => {
           </Fab>
         </Box>
       </Box>
-      
+
       {/* 筛选和搜索 */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -219,7 +219,7 @@ const RecordList = ({ showNotification }) => {
             ))}
           </Select>
         </FormControl>
-        
+
         <TextField
           fullWidth
           variant="outlined"
@@ -237,9 +237,9 @@ const RecordList = ({ showNotification }) => {
           sx={{ flexGrow: 1 }}
         />
       </Box>
-      
+
       {/* 记录表格 */}
-      <TableContainer component={Paper} sx={{ 
+      <TableContainer component={Paper} sx={{
         boxShadow: 1,
         transition: 'all 0.3s'
       }}>
@@ -253,6 +253,7 @@ const RecordList = ({ showNotification }) => {
               <TableCell>结束时间</TableCell>
               <TableCell>时长(小时)</TableCell>
               <TableCell>类别</TableCell>
+              <TableCell>备注</TableCell>
               <TableCell align="right">操作</TableCell>
             </TableRow>
           </TableHead>
@@ -265,10 +266,10 @@ const RecordList = ({ showNotification }) => {
               </TableRow>
             ) : (
               filteredRecords.map((record) => (
-                <TableRow 
+                <TableRow
                   key={record.recordId}
                   hover
-                  sx={{ 
+                  sx={{
                     transition: 'background-color 0.2s',
                     '&:hover': {
                       backgroundColor: 'action.hover'
@@ -284,11 +285,12 @@ const RecordList = ({ showNotification }) => {
                     {Math.max(0, calculateHours(record.startTime, record.endTime))}
                   </TableCell>
                   <TableCell>{record.category}</TableCell>
+                  <TableCell>{record.comments}</TableCell>
                   <TableCell align="right">
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       onClick={() => handleEdit(record)}
-                      sx={{ 
+                      sx={{
                         color: 'primary.main',
                         '&:hover': {
                           backgroundColor: 'primary.light'
@@ -297,10 +299,11 @@ const RecordList = ({ showNotification }) => {
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleDelete(record.recordId)}
-                      sx={{ 
+
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDelete(record.caseId, record.recordId)}
+                      sx={{
                         color: 'error.main',
                         '&:hover': {
                           backgroundColor: 'error.light'
@@ -316,7 +319,7 @@ const RecordList = ({ showNotification }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       {/* 记录表单对话框 */}
       <RecordForm
         open={formOpen}

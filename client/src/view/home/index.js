@@ -46,7 +46,7 @@ export default function Home() {
 
     useEffect(() => {
         const fetchTasks = async () => {
-            const response = await axios.get(`https://law-ai.top/api/user/${'lujian'}/bindings`);
+            const response = await axios.get(`https://law-ai.top/api/user/${window.userConfig.userId}/bindings`);
             const result = response.data;
             const mapped = result.map(item => ({ ...item, isRunning: false, seconds: 0, comments: '' }))
             setTasks(mapped)
@@ -99,7 +99,7 @@ export default function Home() {
             const response = await axios.post('https://law-ai.top/api/record/start', null, {
                 params: {
                     caseId: taskId,
-                    userId: 'lujian',
+                    userId: window.userConfig.userId,
                     category: task.type,
                     comments: task.comments
                 }
@@ -239,11 +239,6 @@ export default function Home() {
                                                             marginTop: '0px !important',
                                                         }}
                                                     >
-                                                        <MenuItem value="" dense={true} sx={{
-                                                            fontSize: 10
-                                                        }}>
-                                                            <em>None</em>
-                                                        </MenuItem>
                                                         {
                                                             categories.map(item => {
                                                                 return <MenuItem dense={true} sx={{
@@ -326,7 +321,7 @@ export default function Home() {
                                                 >
                                                     {formatTime(task.seconds)}
                                                 </Typography>
-                                                <IconButton aria-label="delete" size="small" color="primary" variant="contained" disabled={task.isRunning || !task.type || !task.comments}
+                                                <IconButton aria-label="delete" size="small" color="primary" variant="contained" disabled={task.isRunning || !task.type}
                                                     onClick={() => toggleTimer(task.caseId)}>
                                                     <PlayArrow fontSize="small" />
                                                 </IconButton>

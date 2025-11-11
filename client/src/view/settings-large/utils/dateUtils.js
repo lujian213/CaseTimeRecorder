@@ -5,6 +5,12 @@ export const calculateHours = (startTime, endTime) => {
   return hours.toFixed(1);
 };
 
+export const calculateMinutes = (startTime, endTime) => {
+  const diffMs = endTime - startTime;
+  const minutes = diffMs / (1000 * 60);
+  return minutes.toFixed(1);
+};
+
 // 格式化时间戳为本地日期时间字符串
 export const formatDateTime = (timestamp) => {
   if (!timestamp) return '';

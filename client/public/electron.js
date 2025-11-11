@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const url = require('url');
 
@@ -80,10 +80,11 @@ app.on('activate', () => {
 
 // 监听打开新窗口的请求
 ipcMain.on('open-new-window', (event, args) => {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // 创建新窗口
   const newWindow = new BrowserWindow({
-    width: args.width || 800,
-    height: args.height || 600,
+    width: Math.round(width * 0.8),   // 宽度=屏幕的80%
+    height: Math.round(height * 0.8),
     title: args.title || '新窗口',
     webPreferences: {
       nodeIntegration: false,

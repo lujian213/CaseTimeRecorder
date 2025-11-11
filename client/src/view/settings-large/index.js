@@ -45,7 +45,7 @@ const App = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3, height: '100vh', overflow: 'auto' }}>
+    <Container sx={{ py: 3, height: '100vh', overflow: 'auto', maxWidth: '100vw !important' }}>
       <CaseProvider>
         <RecordProvider>
           <UserProvider>

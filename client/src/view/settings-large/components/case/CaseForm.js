@@ -131,7 +131,8 @@ const CaseForm = ({ open, onClose, onSubmit, initialData }) => {
               sx={{ transition: 'all 0.2s' }}
             >
               <MenuItem value="ACTIVE">激活</MenuItem>
-              <MenuItem value="INACTIVE">未激活</MenuItem>
+              <MenuItem value="CLOSED">已结案</MenuItem>
+              <MenuItem value="DELETED">已删除</MenuItem>
             </Select>
           </FormControl>
         </Box>

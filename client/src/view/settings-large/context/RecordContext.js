@@ -34,15 +34,15 @@ export const RecordProvider = ({ children }) => {
   };
 
   const updateRecord = async (updatedRecord) => {
-    const { recordId, ...payload } = updatedRecord;
-    const saved = await updateRecordApi(recordId, payload);
+    const { recordId } = updatedRecord;
+    const saved = await updateRecordApi(updatedRecord);
     setRecords(prev => prev.map(r => r.recordId === recordId ? saved : r));
     return saved;
   };
 
-  const deleteRecord = async (recordId) => {
-    await deleteRecordApi(recordId);
-    setRecords(prev => prev.filter(r => r.recordId !== recordId));
+  const deleteRecord = async (caseId, recordId) => {
+    await deleteRecordApi(caseId, recordId);
+    setRecords(prev => prev.filter(r => r.caseId !== caseId || r.recordId !== recordId));
   };
 
   const getRecordsByCaseId = (caseId) => {

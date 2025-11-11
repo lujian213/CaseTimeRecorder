@@ -11,14 +11,14 @@ export const createRecordApi = async (payload) => {
   return data;
 };
 
-export const updateRecordApi = async (id, payload) => {
+export const updateRecordApi = async (payload) => {
   // Backend expects POST for update
-  const { data } = await axios.post(`/record/${id}`, payload);
+  const { data } = await axios.post(`/record`, payload);
   return data;
 };
 
-export const deleteRecordApi = async (id) => {
-  const { data } = await axios.delete(`/record/${id}`);
+export const deleteRecordApi = async (caseId, recordId) => {
+  const { data } = await axios.delete(`/record?caseId=${caseId}&recordId=${recordId}`);
   return data;
 };
 

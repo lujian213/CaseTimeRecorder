@@ -10,7 +10,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useRecordContext } from '../../context/RecordContext';
 import { useCaseContext } from '../../context/CaseContext';
 import { useUserContext } from '../../context/UserContext';
-import { calculateHours } from '../../utils/dateUtils';
+import { calculateMinutes } from '../../utils/dateUtils';
 import { fetchCategories } from '../../../../api/categories';
 
 const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
@@ -19,6 +19,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
   const { users } = useUserContext();
   
   const [formData, setFormData] = useState({
+    recordId: null,
     caseId: 0,
     userId: '',
     startTime: new Date(),
@@ -34,7 +35,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
   // 使用 useMemo 优化计算
   const memoizedDuration = useMemo(() => {
     if (formData.startTime && formData.endTime) {
-      return calculateHours(formData.startTime.getTime(), formData.endTime.getTime());
+      return calculateMinutes(formData.startTime.getTime(), formData.endTime.getTime());
     }
     return '0';
   }, [formData.startTime, formData.endTime]);
@@ -68,6 +69,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
   useEffect(() => {
     if (initialData) {
       setFormData({
+        recordId: initialData.recordId,
         caseId: initialData.caseId,
         userId: initialData.userId,
         startTime: new Date(initialData.startTime),
@@ -81,6 +83,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
       const defaultUserId = users.length > 0 ? users[0].userId : '';
       
       setFormData({
+        recordId: null,
         caseId: defaultCaseId,
         userId: defaultUserId,
         startTime: new Date(),
@@ -224,7 +227,7 @@ const RecordForm = ({ open, onClose, onSubmit, initialData }) => {
         
         {duration > 0 && (
           <Alert severity="info" sx={{ mb: 2, fontSize: '0.875rem', padding: '8px 16px' }}>
-            时长: {duration} 小时
+            时长: {duration} 分钟
           </Alert>
         )}
         

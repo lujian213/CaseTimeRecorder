@@ -53,7 +53,8 @@ const CaseList = ({ showNotification }) => {
     const getStatusChip = (status) => {
         const statusConfig = {
             ACTIVE: { color: 'success', label: '激活' },
-            INACTIVE: { color: 'default', label: '未激活' }
+            CLOSED: { color: 'default', label: '已结案' },
+            DELETED: { color: 'error', label: '已删除' },
         };
 
         const config = statusConfig[status] || { color: 'default', label: status };
