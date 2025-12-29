@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Base URL per environment
 axios.defaults.baseURL = process.env.NODE_ENV === 'development'
-  ? 'https://law-ai.top/api'                       // dev: go through CRA proxy
-  : 'https://law-ai.top/api';    // prod: direct API
+  ? window.userConfig.api                       // dev: go through CRA proxy
+  : window.userConfig.api;    // prod: direct API
 
 // Default timeout
 axios.defaults.timeout = 30000;

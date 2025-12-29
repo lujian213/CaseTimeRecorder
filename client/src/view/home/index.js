@@ -46,7 +46,7 @@ export default function Home() {
 
     useEffect(() => {
         const fetchTasks = async () => {
-            const response = await axios.get(`https://law-ai.top/api/user/${window.userConfig.userId}/bindings`);
+            const response = await axios.get(`${window.userConfig.api}/user/${window.userConfig.userId}/bindings`);
             const result = response.data;
             const mapped = result.map(item => ({ ...item, isRunning: false, seconds: 0, comments: '' }))
             setTasks(mapped)
@@ -61,7 +61,7 @@ export default function Home() {
 
     useEffect(() => {
         const fetchTasks = async () => {
-            const resposne = await axios.get('https://law-ai.top/api/categories');
+            const resposne = await axios.get(`${window.userConfig.api}/categories`);
             const result = resposne.data;
             const mapped = result.map(item => item.name)
             setCategories(mapped)
@@ -96,7 +96,7 @@ export default function Home() {
         const task = tasks.find(t => t.caseId === taskId);
         let currentRecordId = null;
         try {
-            const response = await axios.post('https://law-ai.top/api/record/start', null, {
+            const response = await axios.post(`${window.userConfig.api}/record/start`, null, {
                 params: {
                     caseId: taskId,
                     userId: window.userConfig.userId,
@@ -151,7 +151,7 @@ export default function Home() {
     // 停止所有计时器
     const stopAllTimers = async () => {
         const task = tasks.find(task => task.isRunning === true);
-        await axios.post('https://law-ai.top/api/record/stop', null, {
+        await axios.post(`${window.userConfig.api}/record/stop`, null, {
             params: {
                 caseId: task.caseId,
                 recordId: task.recordId,
