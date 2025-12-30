@@ -1,4 +1,4 @@
 window.userConfig = {
     userId: 'lujian',
-    api: 'https://law-ai.top/api'
+    api: 'https://eggfund.website:9443/api'
 };
