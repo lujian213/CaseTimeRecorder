@@ -10,5 +10,8 @@ contextBridge.exposeInMainWorld('electronIPC', {
 
   openNewWindow: (route) => ipcRenderer.send('open-new-window', { route }),
 
-  resizeWindow: (height) => ipcRenderer.send('resize-window', height)
+  resizeWindow: (height) => ipcRenderer.send('resize-window', height),
+
+  // 获取用户配置
+  getUserConfig: () => ipcRenderer.invoke('user-config:get')
 });
