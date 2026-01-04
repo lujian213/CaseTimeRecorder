@@ -342,10 +342,15 @@ export default function Home() {
                         fullWidth
                         size="small"
                         onClick={stopAllTimers}
+                        disabled={!tasks.some(task => task.isRunning)}
                         sx={{
                             marginBottom: '10px',
                             bgcolor: '#6b7280',
-                            '&:hover': { bgcolor: '#4b5563' }
+                            '&:hover': { bgcolor: '#4b5563' },
+                            '&:disabled': {
+                                bgcolor: '#d1d5db',
+                                color: '#9ca3af'
+                            }
                         }}
                     >
                         休息

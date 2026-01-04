@@ -8,8 +8,9 @@ let mainWindow;
 
 // 读取用户配置文件
 function getUserConfig() {
-  // C 盘 time-recorder 文件夹路径
-  const configPath = path.join('C:', 'time-recorder', 'config.json');
+  // 用户目录下的 .timerecorder 文件夹
+  const configDir = path.join(os.homedir(), '.timerecorder');
+  const configPath = path.join(configDir, 'config.json');
   
   // 默认配置
   const defaultConfig = {
@@ -25,8 +26,7 @@ function getUserConfig() {
       // 合并默认配置和用户配置
       return { ...defaultConfig, ...userConfig };
     } else {
-      // 如果配置文件不存在，创建默认配置文件
-      const configDir = path.dirname(configPath);
+      // 如果配置文件不存在，创建文件夹和默认配置文件
       if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
       }
@@ -59,7 +59,7 @@ function createWindow() {
   });
 
   // 打开开发者工具
-  mainWindow.webContents.openDevTools({ mode: 'detach' });
+  //mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   // 加载React开发服务器
   const startUrl = process.env.ELECTRON_START_URL || url.format({
@@ -134,7 +134,7 @@ ipcMain.on('open-new-window', (event, args) => {
   });
 
   // 打开开发者工具（新窗口）
-  newWindow.webContents.openDevTools({ mode: 'detach' });
+  //newWindow.webContents.openDevTools({ mode: 'detach' });
 
   // 构建带路由的URL
   const startUrl = process.env.ELECTRON_START_URL || url.format({
