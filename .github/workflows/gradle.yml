@@ -89,12 +89,20 @@ jobs:
           cd client
           $env:CI=""
           npm run build
-      - name: Temporarily save client exe
-        uses: actions/upload-artifact@v4
+          rename "dist\win-unpacked\Time Recorder.exe" time_recorder.exe
+      - name: Zip client win\-unpacked
+        run: |
+          Compress-Archive -Path client/dist/win-unpacked/* -DestinationPath client/dist/time_recorder.zip -Force
+      - name: copy time_recorder.exe via ssh password
+        uses: appleboy/scp-action@v0.1.7
         with:
-         name: time_recorder.exe
-         path: client/dist/win-unpacked/*.exe
-         retention-days: 1
+          host: ${{ secrets.DEPLOY_HOSTNAME }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          source: "${{ github.workspace }}/client/dist/time_recorder.zip"
+          overwrite: true
+          strip_components: 4
+          target: /casetimerecorder_deploy
 
   package-and-deploy:
     if: github.ref == 'refs/heads/main'
@@ -116,16 +124,9 @@ jobs:
         with:
           name: repo-zip
           path: dist/repo
-      - name: Retrieve saved client exe
-        uses: actions/download-artifact@v4
-        with:
-          name: time_recorder.exe
-          path: dist/client
       - run: |
           ls -l dist/lib
           ls -l dist/repo
-          ls -l dist/client
-          mv dist/client/*.exe dist/client/time_recorder.exe
       - name: Login to dockerhub
         uses: docker/login-action@v3
         with:
@@ -160,16 +161,6 @@ jobs:
           username: ${{ secrets.DEPLOY_USERNAME }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
           source: "${{ github.workspace }}/dist/repo/repo.zip"
-          overwrite: true
-          strip_components: 4
-          target: /casetimerecorder_deploy
-      - name: copy time_recorder.exe via ssh password
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOSTNAME }}
-          username: ${{ secrets.DEPLOY_USERNAME }}
-          password: ${{ secrets.DEPLOY_PASSWORD }}
-          source: "${{ github.workspace }}/dist/client/*.exe"
           overwrite: true
           strip_components: 4
           target: /casetimerecorder_deploy
