@@ -89,7 +89,7 @@ jobs:
           cd client
           $env:CI=""
           npm run build
-          rename "dist\win-unpacked\Time Recorder.exe" time_recorder.exe
+          ren "dist\win-unpacked\Time Recorder.exe" time_recorder.exe
       - name: Zip client win\-unpacked
         run: |
           Compress-Archive -Path client/dist/win-unpacked/* -DestinationPath client/dist/time_recorder.zip -Force
